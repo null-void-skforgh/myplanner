@@ -30,37 +30,39 @@
 }
 html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans',sans-serif}
 body{display:flex;flex-direction:column;max-width:480px;margin:0 auto}
-
+ 
 .header{padding:calc(var(--safe-top) + 14px) 20px 14px;background:var(--surface);border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between}
 .header-title{font-size:18px;font-weight:600;color:var(--purple)}
 .header-date{font-size:13px;color:var(--text2)}
-
+ 
 .tab-bar{display:flex;background:var(--surface);border-top:0.5px solid var(--border);padding-bottom:var(--safe-bottom);position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;z-index:100}
 .tab{flex:1;display:flex;flex-direction:column;align-items:center;padding:10px 0;cursor:pointer;gap:3px;border:none;background:none;color:var(--text3);font-size:10px;transition:color 0.15s}
 .tab.active{color:var(--purple)}
 .tab svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
-
+ 
 .pages{flex:1;overflow:hidden;margin-bottom:calc(60px + var(--safe-bottom))}
 .page{display:none;height:100%;overflow-y:auto;padding:16px}
 .page.active{display:block}
-
+ 
 /* ── Calendar ── */
 .cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
 .cal-nav-btn{background:var(--surface2);border:none;border-radius:50%;width:34px;height:34px;cursor:pointer;color:var(--text);font-size:18px;display:flex;align-items:center;justify-content:center}
 .cal-month{font-size:17px;font-weight:600}
 .cal-weekdays{display:grid;grid-template-columns:repeat(7,1fr);margin-bottom:4px}
 .cal-wd{text-align:center;font-size:11px;color:var(--text2);padding:4px 0}
-.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
-.cal-day{text-align:center;font-size:13px;padding:6px 2px 14px;border-radius:var(--radius-sm);cursor:pointer;color:var(--text);position:relative;min-height:38px}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.cal-day{text-align:center;font-size:13px;padding:5px 2px 4px;border-radius:var(--radius-sm);cursor:pointer;color:var(--text);min-height:58px;display:flex;flex-direction:column;align-items:center;gap:2px}
 .cal-day:active{background:var(--surface2)}
-.cal-day.today{background:var(--purple);color:#fff;font-weight:600}
-.cal-day.selected:not(.today){background:var(--purple-light);color:var(--purple);font-weight:600}
 .cal-day.other{color:var(--text3)}
-/* ドット群：最大3つ横並び */
-.cal-dots{position:absolute;bottom:3px;left:50%;transform:translateX(-50%);display:flex;gap:2px;align-items:center}
-.cal-dot{width:4px;height:4px;border-radius:50%;flex-shrink:0}
-.cal-dot.todo{background:var(--purple)}
-.cal-dot.event{background:var(--pink)}
+.cal-num{width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:13px;border-radius:50%;flex-shrink:0}
+.cal-day.today .cal-num{background:var(--purple);color:#fff;font-weight:600}
+.cal-day.selected:not(.today) .cal-num{background:var(--purple-light);color:var(--purple);font-weight:600}
+.cal-events{display:flex;flex-direction:column;gap:1px;width:100%;padding:0 1px}
+.cal-ev{font-size:9px;line-height:1.3;border-radius:2px;padding:1px 3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:left;max-width:100%}
+.cal-ev.todo{background:var(--purple-light);color:var(--purple)}
+.cal-ev.event{background:var(--pink-light);color:var(--pink)}
+.cal-day.today .cal-ev.todo{background:rgba(255,255,255,0.25);color:#fff}
+.cal-day.today .cal-ev.event{background:rgba(255,255,255,0.2);color:#ffe0eb}
 /* 選択日パネル */
 .day-panel{margin-top:14px;border-radius:var(--radius);overflow:hidden;border:0.5px solid var(--border)}
 .day-panel-header{padding:12px 14px;background:var(--surface);display:flex;align-items:center;justify-content:space-between}
@@ -93,7 +95,7 @@ body{display:flex;flex-direction:column;max-width:480px;margin:0 auto}
 .day-item-tag.todo{background:var(--purple-light);color:var(--purple)}
 .day-item-tag.event{background:var(--pink-light);color:var(--pink)}
 .day-item-del{background:none;border:none;cursor:pointer;color:var(--text3);font-size:18px;line-height:1;padding:0 2px}
-
+ 
 /* ── Todo ── */
 .todo-add-row{display:flex;gap:8px;margin-bottom:16px}
 .todo-add-row input{flex:1;font-size:14px;padding:11px 14px;border-radius:var(--radius);border:0.5px solid var(--border);background:var(--surface);color:var(--text);outline:none}
@@ -115,7 +117,7 @@ body{display:flex;flex-direction:column;max-width:480px;margin:0 auto}
 .due-over{color:var(--red)}
 .todo-del{background:none;border:none;cursor:pointer;color:var(--text3);font-size:20px;line-height:1;padding:0 4px;flex-shrink:0}
 .completed-section{margin-top:20px}
-
+ 
 /* ── モーダル（Todo追加・期限なし追加用） ── */
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;align-items:flex-end;justify-content:center}
 .modal-overlay.open{display:flex}
@@ -129,14 +131,14 @@ body{display:flex;flex-direction:column;max-width:480px;margin:0 auto}
 .modal-btns{display:flex;gap:8px;margin-top:16px}
 .modal-btns .btn-todo{flex:1;text-align:center}
 .modal-btns .btn-skip{flex:1;padding:10px 16px;border-radius:var(--radius-sm);border:0.5px solid var(--border);background:var(--surface2);color:var(--text2);font-size:14px;cursor:pointer}
-
+ 
 /* ── Memo ── */
 .memo-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
 .memo-title{font-size:17px;font-weight:600}
 .memo-area{width:100%;min-height:calc(100vh - 220px);font-size:15px;padding:14px;border-radius:var(--radius);border:0.5px solid var(--border);background:var(--surface);color:var(--text);resize:none;outline:none;font-family:inherit;line-height:1.7}
 .memo-area:focus{border-color:var(--purple)}
 .memo-saved{font-size:12px;color:var(--text3);transition:opacity .5s}
-
+ 
 /* ── AI ── */
 .ai-messages{display:flex;flex-direction:column;gap:10px;padding-bottom:80px;min-height:200px}
 .ai-msg{padding:11px 14px;border-radius:var(--radius);font-size:14px;line-height:1.6;max-width:85%;word-break:break-word}
@@ -147,7 +149,7 @@ body{display:flex;flex-direction:column;max-width:480px;margin:0 auto}
 .ai-input-bar input:focus{border-color:var(--purple)}
 .ai-send-btn{width:42px;height:42px;border-radius:50%;background:var(--purple);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .ai-send-btn svg{width:18px;height:18px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-
+ 
 /* ── Widget ── */
 .widget-preview{background:#1e1d2e;border-radius:var(--radius);padding:14px;margin:0 auto 8px;max-width:320px}
 .wp-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
@@ -176,20 +178,20 @@ body{display:flex;flex-direction:column;max-width:480px;margin:0 auto}
 .btn{padding:9px 16px;border-radius:var(--radius-sm);border:none;background:var(--purple);color:#fff;font-size:14px;cursor:pointer;font-weight:500}
 .btn:active{opacity:0.85}
 .btn.secondary{background:var(--surface2);color:var(--purple);border:0.5px solid var(--border)}
-
+ 
 .dot-anim::after{content:'●●●';letter-spacing:3px;animation:dots 1.2s infinite}
 @keyframes dots{0%,100%{opacity:1}50%{opacity:0.3}}
 </style>
 </head>
 <body>
-
+ 
 <div class="header">
   <div class="header-title">マイプランナー</div>
   <div class="header-date" id="header-date"></div>
 </div>
-
+ 
 <div class="pages">
-
+ 
   <!-- ── カレンダー ── -->
   <div class="page active" id="page-cal">
     <div class="cal-nav">
@@ -203,7 +205,7 @@ body{display:flex;flex-direction:column;max-width:480px;margin:0 auto}
       <div class="cal-wd" style="color:var(--purple)">土</div>
     </div>
     <div class="cal-grid" id="cal-grid"></div>
-
+ 
     <!-- 選択日パネル -->
     <div class="day-panel" id="day-panel" style="display:none">
       <div class="day-panel-header">
@@ -230,7 +232,7 @@ body{display:flex;flex-direction:column;max-width:480px;margin:0 auto}
         </div>
       </div>
     </div>
-
+ 
     <!-- 凡例 -->
     <div style="display:flex;gap:14px;margin-top:14px;padding:0 2px">
       <div style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text2)">
@@ -241,7 +243,7 @@ body{display:flex;flex-direction:column;max-width:480px;margin:0 auto}
       </div>
     </div>
   </div>
-
+ 
   <!-- ── Todo ── -->
   <div class="page" id="page-todo">
     <div class="todo-add-row">
@@ -260,7 +262,7 @@ body{display:flex;flex-direction:column;max-width:480px;margin:0 auto}
       <div class="todo-list" id="todo-done"></div>
     </div>
   </div>
-
+ 
   <!-- ── メモ ── -->
   <div class="page" id="page-memo">
     <div class="memo-header">
@@ -269,7 +271,7 @@ body{display:flex;flex-direction:column;max-width:480px;margin:0 auto}
     </div>
     <textarea class="memo-area" id="memo-area" placeholder="自由にメモを書いてください..."></textarea>
   </div>
-
+ 
   <!-- ── AI ── -->
   <div class="page" id="page-ai">
     <div class="ai-messages" id="ai-messages">
@@ -282,7 +284,7 @@ body{display:flex;flex-direction:column;max-width:480px;margin:0 auto}
       </button>
     </div>
   </div>
-
+ 
   <!-- ── ウィジェット ── -->
   <div class="page" id="page-widget">
     <div style="font-size:17px;font-weight:600;margin-bottom:14px">📱 ホーム画面ウィジェット</div>
@@ -316,9 +318,9 @@ body{display:flex;flex-direction:column;max-width:480px;margin:0 auto}
       <div class="step"><div class="step-num">4</div><div><div class="step-title">スクリプトを選択</div><div class="step-desc">ウィジェットを長押し → 「ウィジェットを編集」→「マイプランナー」を選択</div></div></div>
     </div>
   </div>
-
+ 
 </div>
-
+ 
 <!-- Tab bar -->
 <nav class="tab-bar">
   <button class="tab active" data-page="cal">
@@ -342,26 +344,26 @@ body{display:flex;flex-direction:column;max-width:480px;margin:0 auto}
     ウィジェット
   </button>
 </nav>
-
+ 
 <script>
 const today = new Date();
 let curYear = today.getFullYear(), curMonth = today.getMonth();
 let selectedKey = null;
 let addMode = null; // 'todo' or 'event'
-
+ 
 // データ: events[key] = [{type:'todo'|'event', text, id}]
 let calItems = JSON.parse(localStorage.getItem('calItems') || '{}');
 let todos = JSON.parse(localStorage.getItem('todos') || '[]');
 let nextId = parseInt(localStorage.getItem('nextId') || '1');
 const DAY_LABELS = ['日','月','火','水','木','金','土'];
-
+ 
 function saveCalItems(){ localStorage.setItem('calItems', JSON.stringify(calItems)); }
 function saveTodos(){ localStorage.setItem('todos', JSON.stringify(todos)); localStorage.setItem('nextId', String(nextId)); }
-
+ 
 // Header
 document.getElementById('header-date').textContent =
   `${today.getMonth()+1}月${today.getDate()}日(${DAY_LABELS[today.getDay()]})`;
-
+ 
 // Tabs
 document.querySelectorAll('.tab').forEach(tab => {
   tab.addEventListener('click', () => {
@@ -372,7 +374,7 @@ document.querySelectorAll('.tab').forEach(tab => {
     if (tab.dataset.page === 'widget') updateWidgetPreview();
   });
 });
-
+ 
 // ── Calendar ──
 function buildCal() {
   const grid = document.getElementById('cal-grid');
@@ -381,14 +383,14 @@ function buildCal() {
   const first = new Date(curYear, curMonth, 1).getDay();
   const last  = new Date(curYear, curMonth+1, 0).getDate();
   const prevLast = new Date(curYear, curMonth, 0).getDate();
-
+ 
   const mkDay = (num, cls) => {
     const el = document.createElement('div');
     el.className = 'cal-day ' + cls;
-    el.innerHTML = `<span>${num}</span><div class="cal-dots"></div>`;
+    el.innerHTML = `<div class="cal-num">${num}</div><div class="cal-events"></div>`;
     return el;
   };
-
+ 
   for (let i = 0; i < first; i++) {
     grid.appendChild(mkDay(prevLast - first + 1 + i, 'other'));
   }
@@ -398,30 +400,45 @@ function buildCal() {
     let cls = isToday ? 'today' : '';
     if (selectedKey === key && !isToday) cls += ' selected';
     const el = mkDay(d, cls);
-
-    // ドット
+ 
+    // 予定テキスト表示（最大3件）
     const items = calItems[key] || [];
-    const hasTodo  = items.some(i => i.type === 'todo');
-    const hasEvent = items.some(i => i.type === 'event');
-    // todoからdue付きで追加されたものもドット表示
     const todosDue = todos.filter(t => t.due === key && !t.done);
-    const dotsEl = el.querySelector('.cal-dots');
-    if (hasTodo || todosDue.length > 0) {
-      const dot = document.createElement('span');
-      dot.className = 'cal-dot todo'; dotsEl.appendChild(dot);
+    const eventsEl = el.querySelector('.cal-events');
+    let count = 0;
+    // Todoを先に（紫）
+    for (const t of todosDue) {
+      if (count >= 3) break;
+      const ev = document.createElement('div');
+      ev.className = 'cal-ev todo';
+      ev.textContent = t.text;
+      eventsEl.appendChild(ev); count++;
     }
-    if (hasEvent) {
-      const dot = document.createElement('span');
-      dot.className = 'cal-dot event'; dotsEl.appendChild(dot);
+    // 用事（ピンク）
+    for (const item of items.filter(i => i.type === 'event')) {
+      if (count >= 3) break;
+      const ev = document.createElement('div');
+      ev.className = 'cal-ev event';
+      ev.textContent = item.text;
+      eventsEl.appendChild(ev); count++;
     }
-
+    // 超過分
+    const total = todosDue.length + items.filter(i => i.type === 'event').length;
+    if (total > 3) {
+      const more = document.createElement('div');
+      more.className = 'cal-ev todo';
+      more.style.opacity = '0.6';
+      more.textContent = `+${total - 3}`;
+      eventsEl.appendChild(more);
+    }
+ 
     el.addEventListener('click', () => { selectedKey = key; buildCal(); showDayPanel(); });
     grid.appendChild(el);
   }
   const rem = 42 - first - last;
   for (let i = 1; i <= rem; i++) grid.appendChild(mkDay(i, 'other'));
 }
-
+ 
 function showDayPanel() {
   if (!selectedKey) { document.getElementById('day-panel').style.display = 'none'; return; }
   const [y, m, d] = selectedKey.split('-');
@@ -432,19 +449,19 @@ function showDayPanel() {
   document.getElementById('day-input-area').classList.remove('open');
   addMode = null;
 }
-
+ 
 function renderDayItems() {
   const list = document.getElementById('day-items-list');
   list.innerHTML = '';
   const items = calItems[selectedKey] || [];
   // TodosでdueがselectedKeyのものも表示
   const todoDue = todos.filter(t => t.due === selectedKey && !t.done);
-
+ 
   const allItems = [
     ...todoDue.map(t => ({ type: 'todo', text: t.text, id: 'todo-' + t.id, fromTodo: true })),
     ...items
   ];
-
+ 
   if (allItems.length === 0) {
     list.innerHTML = '<div style="padding:10px 14px;font-size:13px;color:var(--text3)">予定はまだありません</div>';
     return;
@@ -467,7 +484,7 @@ function renderDayItems() {
     list.appendChild(row);
   });
 }
-
+ 
 // 種別ボタン
 document.getElementById('pick-todo').addEventListener('click', () => {
   addMode = 'todo';
@@ -493,7 +510,7 @@ document.getElementById('pick-event').addEventListener('click', () => {
   inp.placeholder = '用事の内容を入力...';
   inp.focus();
 });
-
+ 
 function addDayItem() {
   const inp = document.getElementById('day-input');
   const text = inp.value.trim();
@@ -513,10 +530,10 @@ function addDayItem() {
 }
 document.getElementById('day-add-btn').addEventListener('click', addDayItem);
 document.getElementById('day-input').addEventListener('keydown', e => { if (e.key === 'Enter') addDayItem(); });
-
+ 
 document.getElementById('prev').addEventListener('click', () => { curMonth--; if(curMonth<0){curMonth=11;curYear--;} buildCal(); });
 document.getElementById('next').addEventListener('click', () => { curMonth++; if(curMonth>11){curMonth=0;curYear++;} buildCal(); });
-
+ 
 // ── Todo helpers ──
 function isUrgent(due) {
   if (!due) return false;
@@ -540,7 +557,7 @@ function dueLabel(due) {
   if (diff === 1) return '明日まで';
   return due.slice(5).replace('-', '/') + 'まで';
 }
-
+ 
 function renderTodos() {
   const active  = todos.filter(t => !t.done);
   const urgent  = active.filter(t => isUrgent(t.due));
@@ -549,7 +566,7 @@ function renderTodos() {
   document.getElementById('urgent-section').style.display = urgent.length ? 'block' : 'none';
   ['todo-urgent','todo-active','todo-done'].forEach(id => document.getElementById(id).innerHTML = '');
   document.getElementById('done-section').style.display = done.length ? 'block' : 'none';
-
+ 
   const mk = (t, container) => {
     const item = document.createElement('div');
     item.className = 'todo-item' + (isUrgent(t.due) && !t.done ? ' urgent' : '');
@@ -578,7 +595,7 @@ function renderTodos() {
   normal.forEach(t => mk(t, document.getElementById('todo-active')));
   done.forEach(t => mk(t, document.getElementById('todo-done')));
 }
-
+ 
 // Todoタブからの直接追加（期限なし）
 document.getElementById('todo-add-btn').addEventListener('click', () => {
   const v = document.getElementById('todo-input').value.trim();
@@ -590,7 +607,7 @@ document.getElementById('todo-add-btn').addEventListener('click', () => {
 document.getElementById('todo-input').addEventListener('keydown', e => {
   if (e.key === 'Enter') document.getElementById('todo-add-btn').click();
 });
-
+ 
 // ── Memo ──
 const memoArea = document.getElementById('memo-area');
 memoArea.value = localStorage.getItem('memo') || '';
@@ -603,7 +620,7 @@ memoArea.addEventListener('input', () => {
     document.getElementById('memo-saved').style.opacity = '1';
   }, 600);
 });
-
+ 
 // ── AI ──
 async function sendAI() {
   const inp = document.getElementById('ai-input');
@@ -630,7 +647,7 @@ async function sendAI() {
 }
 document.getElementById('ai-send').addEventListener('click', sendAI);
 document.getElementById('ai-input').addEventListener('keydown', e => { if(e.key==='Enter') sendAI(); });
-
+ 
 // ── Widget preview ──
 function updateWidgetPreview() {
   const active = todos.filter(t => !t.done);
@@ -658,7 +675,7 @@ function updateWidgetPreview() {
     const e = document.createElement('div'); e.style.cssText='color:#5a596e;font-size:12px;padding:8px 0'; e.textContent='✅ すべて完了！'; na.appendChild(e);
   }
 }
-
+ 
 // ── Widget code ──
 function generateWidgetCode(embedTodos) {
   const todosJson = embedTodos ? JSON.stringify(todos.filter(t=>!t.done)) : '[]';
@@ -677,7 +694,7 @@ const todos=loadTodos();
 if(config.runsInWidget){Script.setWidget(buildWidget(todos));}else{await runAsApp();await buildWidget(loadTodos()).presentMedium();}
 Script.complete();`;
 }
-
+ 
 function showCopyResult(){
   const r=document.getElementById('copy-result');r.style.display='block';
   setTimeout(()=>r.style.display='none',2500);
@@ -693,9 +710,10 @@ document.getElementById('copy-todos-btn').addEventListener('click',()=>{
   const code=generateWidgetCode(true);
   navigator.clipboard.writeText(code).then(showCopyResult).catch(()=>{copyFallback(code);showCopyResult();});
 });
-
+ 
 buildCal();
 renderTodos();
 </script>
 </body>
 </html>
+ 
