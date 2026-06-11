@@ -803,28 +803,46 @@ document.getElementById('sched-prev').addEventListener('click', () => { schedMon
 document.getElementById('sched-next').addEventListener('click', () => { schedMonth++; if(schedMonth>11){schedMonth=0;schedYear++;} buildSchedule(); });
 
 // Todo helpers
+// due文字列を安全にDateに変換（"2026-6-11" → "2026-06-11"）
+function parseDue(due) {
+  if (!due) return null;
+  const parts = due.split('-');
+  if (parts.length !== 3) return null;
+  const y = parts[0].padStart(4,'0');
+  const m = parts[1].padStart(2,'0');
+  const d = parts[2].padStart(2,'0');
+  const date = new Date(`${y}-${m}-${d}`);
+  date.setHours(0,0,0,0);
+  return isNaN(date.getTime()) ? null : date;
+}
 function isUrgent(due) {
   if (!due) return false;
   const t = new Date(); t.setHours(0,0,0,0);
-  const d = new Date(due); d.setHours(0,0,0,0);
+  const d = parseDue(due);
+  if (!d) return false;
   return (d - t) / 86400000 <= 1;
 }
 function isOverdue(due) {
   if (!due) return false;
   const t = new Date(); t.setHours(0,0,0,0);
-  const d = new Date(due); d.setHours(0,0,0,0);
+  const d = parseDue(due);
+  if (!d) return false;
   return d < t;
 }
 function dueLabel(due, time) {
   if (!due) return '';
   const t = new Date(); t.setHours(0,0,0,0);
-  const d = new Date(due); d.setHours(0,0,0,0);
+  const d = parseDue(due);
+  if (!d) return '';
   const diff = Math.round((d - t) / 86400000);
   const timePart = time ? ' ' + time : '';
+  const parts = due.split('-');
+  const mLabel = parts[1].replace(/^0/,'');
+  const dLabel = parts[2].replace(/^0/,'');
   if (diff < 0) return '期限切れ' + timePart;
   if (diff === 0) return '今日' + timePart + 'まで';
   if (diff === 1) return '明日' + timePart + 'まで';
-  return due.slice(5).replace('-', '/') + timePart + 'まで';
+  return `${mLabel}/${dLabel}` + timePart + 'まで';
 }
 
 function getThisWeekRange() {
