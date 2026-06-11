@@ -963,7 +963,7 @@ function updateWidgetPreview() {
   }
   normal.slice(0, urgent.length>0?2:4).forEach(t => {
     const row = document.createElement('div'); row.className = 'wp-item';
-    row.innerHTML = `<span class="wp-dot normal">○</span><span class="wp-item-text">${t.text}</span>${t.due?`<span style="color:#aaa9c0;font-size:10px">${dueLabel(t.due)}</span>`:''}`;
+    row.innerHTML = `<span class="wp-dot normal">○</span><span class="wp-item-text">${t.text}</span>${t.due?`<span style="color:#aaa9c0;font-size:10px">${dueLabel(t.due, t.start)}</span>`:''}`;
     na.appendChild(row);
   });
   if (active.length === 0) {
