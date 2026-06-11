@@ -296,7 +296,19 @@ body{display:flex;flex-direction:column;max-width:480px;margin:0 auto}
           <div id="todo-form" style="display:none">
             <div class="field-row">
               <input type="text" id="day-todo-input" placeholder="Todoの内容..." />
-              <button class="btn-todo" id="day-todo-add-btn">追加</button>
+            </div>
+            <div class="field-row">
+              <div class="field-group">
+                <div class="field-label">開始（任意）</div>
+                <input type="time" id="todo-start" />
+              </div>
+              <div class="field-group">
+                <div class="field-label">終了（任意）</div>
+                <input type="time" id="todo-end" />
+              </div>
+            </div>
+            <div class="field-row">
+              <button class="btn-todo" id="day-todo-add-btn" style="flex:1">追加</button>
             </div>
           </div>
         </div>
@@ -618,13 +630,15 @@ function renderDayItems() {
   // 時間順ソート（用事）
   const sorted = [...evItems].sort((a,b) => (a.start||'99:99').localeCompare(b.start||'99:99'));
 
-  todoDue.forEach(t => {
+  todoDue.sort((a,b)=>(a.start||'99:99').localeCompare(b.start||'99:99')).forEach(t => {
     const row = document.createElement('div');
     row.className = 'day-item';
+    const tl = t.start || t.end ? timeLabel(t.start, t.end) : '';
     row.innerHTML = `
       <div class="day-item-bar" style="background:var(--purple)"></div>
       <div class="day-item-info">
         <div class="day-item-text">${t.text}</div>
+        ${tl ? `<div class="day-item-time">${tl}</div>` : ''}
       </div>
       <span class="day-item-tag todo">Todo</span>`;
     list.appendChild(row);
@@ -701,11 +715,15 @@ document.getElementById('event-text-input').addEventListener('keydown', e => {
 
 // Todo追加（カレンダーから）
 document.getElementById('day-todo-add-btn').addEventListener('click', () => {
-  const text = document.getElementById('day-todo-input').value.trim();
+  const text  = document.getElementById('day-todo-input').value.trim();
+  const start = document.getElementById('todo-start').value;
+  const end   = document.getElementById('todo-end').value;
   if (!text || !selectedKey) return;
-  todos.unshift({ id: nextId++, text, done: false, due: selectedKey });
+  todos.unshift({ id: nextId++, text, done: false, due: selectedKey, start, end });
   saveTodos(); renderTodos(); renderWeekTodos();
   document.getElementById('day-todo-input').value = '';
+  document.getElementById('todo-start').value = '';
+  document.getElementById('todo-end').value = '';
   buildCal(); renderDayItems();
 });
 document.getElementById('day-todo-input').addEventListener('keydown', e => {
@@ -797,15 +815,16 @@ function isOverdue(due) {
   const d = new Date(due); d.setHours(0,0,0,0);
   return d < t;
 }
-function dueLabel(due) {
+function dueLabel(due, time) {
   if (!due) return '';
   const t = new Date(); t.setHours(0,0,0,0);
   const d = new Date(due); d.setHours(0,0,0,0);
   const diff = Math.round((d - t) / 86400000);
-  if (diff < 0) return '期限切れ';
-  if (diff === 0) return '今日まで';
-  if (diff === 1) return '明日まで';
-  return due.slice(5).replace('-', '/') + 'まで';
+  const timePart = time ? ' ' + time : '';
+  if (diff < 0) return '期限切れ' + timePart;
+  if (diff === 0) return '今日' + timePart + 'まで';
+  if (diff === 1) return '明日' + timePart + 'まで';
+  return due.slice(5).replace('-', '/') + timePart + 'まで';
 }
 
 function getThisWeekRange() {
@@ -841,7 +860,7 @@ function renderWeekTodos() {
       </div>
       <div class="week-todo-body">
         <div class="week-todo-text">${t.text}</div>
-        <div class="week-todo-due">${dueLabel(t.due)}</div>
+        <div class="week-todo-due">${dueLabel(t.due, t.start)}</div>
       </div>`;
     item.querySelector('.week-todo-check').addEventListener('click', () => {
       todos = todos.map(x => x.id===t.id ? {...x,done:!x.done} : x);
@@ -869,8 +888,9 @@ function renderTodos() {
   const mk = (t, container) => {
     const item = document.createElement('div');
     item.className = 'todo-item' + (isUrgent(t.due) && !t.done ? ' urgent' : '');
-    const dl = dueLabel(t.due);
+    const dl = dueLabel(t.due, t.start);
     const dlCls = isOverdue(t.due) ? 'due-over' : isUrgent(t.due) ? 'due-soon' : 'due-normal';
+    const tl = t.start || t.end ? timeLabel(t.start, t.end) : '';
     item.innerHTML = `
       <div class="todo-check${t.done?' checked':''}" data-id="${t.id}">
         <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
@@ -1023,11 +1043,11 @@ function loadTodos(){try{const r=Keychain.contains(STORAGE_KEY)?Keychain.get(STO
 function saveTodos(t){Keychain.set(STORAGE_KEY,JSON.stringify(t));}
 function isUrgent(due){if(!due)return false;const t=new Date();t.setHours(0,0,0,0);const d=new Date(due);d.setHours(0,0,0,0);return(d-t)/86400000<=1;}
 function isOverdue(due){if(!due)return false;const t=new Date();t.setHours(0,0,0,0);const d=new Date(due);d.setHours(0,0,0,0);return d<t;}
-function dueLabel(due){if(!due)return"";const t=new Date();t.setHours(0,0,0,0);const d=new Date(due);d.setHours(0,0,0,0);const diff=Math.round((d-t)/86400000);if(diff<0)return"期限切れ";if(diff===0)return"今日";if(diff===1)return"明日";return due.slice(5).replace("-","/")+"まで";}
+function dueLabel(due,time){if(!due)return"";const t=new Date();t.setHours(0,0,0,0);const d=new Date(due);d.setHours(0,0,0,0);const diff=Math.round((d-t)/86400000);const tp=time?" "+time:"";if(diff<0)return"期限切れ"+tp;if(diff===0)return"今日"+tp+"まで";if(diff===1)return"明日"+tp+"まで";return due.slice(5).replace("-","/")+tp+"まで";}
 const args=URLScheme.allParameters();
 if(args&&args.action==="sync"&&args.todos){try{const s=JSON.parse(decodeURIComponent(args.todos));saveTodos(s);const a=new Alert();a.title="✅ 同期完了";a.message=s.length+"件のTodoを更新しました。";a.addAction("OK");await a.presentAlert();}catch(e){const a=new Alert();a.title="❌ エラー";a.message="同期に失敗しました。";a.addAction("OK");await a.presentAlert();}Script.complete();return;}
 async function runAsApp(){const todos=loadTodos();const active=todos.filter(t=>!t.done);const urgent=active.filter(t=>isUrgent(t.due));const normal=active.filter(t=>!isUrgent(t.due));const done=todos.filter(t=>t.done);let msg="";if(urgent.length>0)msg+="🔴 急ぎ:\\n"+urgent.map(t=>"・"+t.text+"（"+dueLabel(t.due)+"）").join("\\n")+"\\n\\n";if(normal.length>0)msg+="📌 Todo:\\n"+normal.map((t,i)=>i+1+". "+t.text+(t.due?"（"+dueLabel(t.due)+"）":"")).join("\\n");if(active.length===0)msg="✅ 未完了タスクはありません";const a=new Alert();a.title="📋 Todoリスト";a.message=msg.trim();a.addAction("✅ 完了済みを削除（"+done.length+"件）");a.addCancelAction("閉じる");const idx=await a.presentAlert();if(idx===0){saveTodos(todos.filter(t=>!t.done));await runAsApp();}}
-function buildWidget(todos){const sortByDue=arr=>arr.slice().sort((a,b)=>{if(!a.due&&!b.due)return 0;if(!a.due)return 1;if(!b.due)return -1;return a.due.localeCompare(b.due);});const active=todos.filter(t=>!t.done);const urgent=sortByDue(active.filter(t=>isUrgent(t.due)));const normal=sortByDue(active.filter(t=>!isUrgent(t.due)));const w=new ListWidget();w.backgroundColor=new Color("#1a1830");w.setPadding(16,16,14,16);const h=w.addStack();h.layoutHorizontally();h.centerAlignContent();const ti=h.addText("📋 Todoリスト");ti.font=Font.boldSystemFont(14);ti.textColor=new Color("#9f97f0");h.addSpacer();const bc=h.addText(active.length+"件");bc.font=Font.mediumSystemFont(12);bc.textColor=new Color("#6b6a80");w.addSpacer(10);if(urgent.length>0){const ul=w.addText("🔴 急ぎ（1日以内）");ul.font=Font.boldSystemFont(11);ul.textColor=new Color("#e87aa0");w.addSpacer(6);for(const t of urgent.slice(0,2)){const r=w.addStack();r.layoutHorizontally();r.centerAlignContent();r.spacing=8;const icon=r.addText(isOverdue(t.due)?"‼":"⚠");icon.font=Font.systemFont(13);icon.textColor=new Color("#EF9F27");const l=r.addText(t.text);l.font=Font.mediumSystemFont(13);l.textColor=new Color("#f0eff9");l.lineLimit=1;r.addSpacer();const dl=r.addText(dueLabel(t.due));dl.font=Font.systemFont(11);dl.textColor=new Color("#EF9F27");w.addSpacer(5);}if(urgent.length>2){const m=w.addText("他 "+(urgent.length-2)+" 件...");m.font=Font.systemFont(10);m.textColor=new Color("#5a596e");w.addSpacer(4);}}const maxNormal=urgent.length>0?2:4;for(const t of normal.slice(0,maxNormal)){const r=w.addStack();r.layoutHorizontally();r.centerAlignContent();r.spacing=8;const dot=r.addText("○");dot.font=Font.systemFont(13);dot.textColor=new Color("#9f97f0");const l=r.addText(t.text);l.font=Font.systemFont(13);l.textColor=new Color("#f0eff9");l.lineLimit=1;r.addSpacer();if(t.due){const dl=r.addText(dueLabel(t.due));dl.font=Font.systemFont(11);dl.textColor=new Color("#6b6a80");}w.addSpacer(5);}if(normal.length>maxNormal){const m=w.addText("他 "+(normal.length-maxNormal)+" 件...");m.font=Font.systemFont(10);m.textColor=new Color("#5a596e");w.addSpacer(4);}if(active.length===0){const e=w.addText("✅ すべて完了！");e.font=Font.systemFont(13);e.textColor=new Color("#5a596e");}w.addSpacer();const f=w.addStack();f.layoutHorizontally();const hint=f.addText("タップして管理");hint.font=Font.systemFont(11);hint.textColor=new Color("#9f97f0");return w;}
+function buildWidget(todos){const sortByDue=arr=>arr.slice().sort((a,b)=>{if(!a.due&&!b.due)return 0;if(!a.due)return 1;if(!b.due)return -1;return a.due.localeCompare(b.due);});const active=todos.filter(t=>!t.done);const urgent=sortByDue(active.filter(t=>isUrgent(t.due)));const normal=sortByDue(active.filter(t=>!isUrgent(t.due)));const w=new ListWidget();w.backgroundColor=new Color("#1a1830");w.setPadding(16,16,14,16);const h=w.addStack();h.layoutHorizontally();h.centerAlignContent();const ti=h.addText("📋 Todoリスト");ti.font=Font.boldSystemFont(14);ti.textColor=new Color("#9f97f0");h.addSpacer();const bc=h.addText(active.length+"件");bc.font=Font.mediumSystemFont(12);bc.textColor=new Color("#6b6a80");w.addSpacer(10);if(urgent.length>0){const ul=w.addText("🔴 急ぎ（1日以内）");ul.font=Font.boldSystemFont(11);ul.textColor=new Color("#e87aa0");w.addSpacer(6);for(const t of urgent.slice(0,2)){const r=w.addStack();r.layoutHorizontally();r.centerAlignContent();r.spacing=8;const icon=r.addText(isOverdue(t.due)?"‼":"⚠");icon.font=Font.systemFont(13);icon.textColor=new Color("#EF9F27");const l=r.addText(t.text);l.font=Font.mediumSystemFont(13);l.textColor=new Color("#f0eff9");l.lineLimit=1;r.addSpacer();const ts=(t.start||t.end)?(t.start&&t.end?t.start+"〜"+t.end:t.start||t.end):"";const urgLabel=dueLabel(t.due,t.start);const dl=r.addText(urgLabel);dl.font=Font.systemFont(11);dl.textColor=new Color("#EF9F27");w.addSpacer(5);}if(urgent.length>2){const m=w.addText("他 "+(urgent.length-2)+" 件...");m.font=Font.systemFont(10);m.textColor=new Color("#5a596e");w.addSpacer(4);}}const maxNormal=urgent.length>0?2:4;for(const t of normal.slice(0,maxNormal)){const r=w.addStack();r.layoutHorizontally();r.centerAlignContent();r.spacing=8;const dot=r.addText("○");dot.font=Font.systemFont(13);dot.textColor=new Color("#9f97f0");const l=r.addText(t.text);l.font=Font.systemFont(13);l.textColor=new Color("#f0eff9");l.lineLimit=1;r.addSpacer();const rightLabel=dueLabel(t.due,t.start);if(rightLabel){const dl=r.addText(rightLabel);dl.font=Font.systemFont(10);dl.textColor=new Color("#6b6a80");}w.addSpacer(5);}if(normal.length>maxNormal){const m=w.addText("他 "+(normal.length-maxNormal)+" 件...");m.font=Font.systemFont(10);m.textColor=new Color("#5a596e");w.addSpacer(4);}if(active.length===0){const e=w.addText("✅ すべて完了！");e.font=Font.systemFont(13);e.textColor=new Color("#5a596e");}w.addSpacer();const f=w.addStack();f.layoutHorizontally();const hint=f.addText("タップして管理");hint.font=Font.systemFont(11);hint.textColor=new Color("#9f97f0");return w;}
 const todos=loadTodos();
 if(config.runsInWidget){Script.setWidget(buildWidget(todos));}else{await runAsApp();await buildWidget(loadTodos()).presentMedium();}
 Script.complete();`;
@@ -1048,6 +1068,98 @@ document.getElementById('copy-todos-btn').addEventListener('click',()=>{
   const code=generateWidgetCode(true);
   navigator.clipboard.writeText(code).then(showCopyResult).catch(()=>{copyFallback(code);showCopyResult();});
 });
+
+// ── 起動時自動処理 ──
+
+// 期限切れTodoを自動アーカイブ
+function autoArchive() {
+  const lastRun = localStorage.getItem('lastArchiveDate');
+  const todayStr = today.toISOString().slice(0, 10);
+  if (lastRun === todayStr) return; // 今日すでに実行済み
+
+  let archived = 0;
+  todos = todos.map(t => {
+    if (!t.done && t.due && isOverdue(t.due)) {
+      archived++;
+      return { ...t, done: true, archivedAuto: true };
+    }
+    return t;
+  });
+
+  if (archived > 0) {
+    saveTodos();
+    // 通知バナー表示
+    const banner = document.createElement('div');
+    banner.style.cssText = `position:fixed;top:calc(var(--safe-top) + 60px);left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:10px 18px;border-radius:20px;font-size:13px;z-index:500;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,0.3)`;
+    banner.textContent = `📦 期限切れ ${archived}件 をアーカイブしました`;
+    document.body.appendChild(banner);
+    setTimeout(() => banner.remove(), 3000);
+  }
+  localStorage.setItem('lastArchiveDate', todayStr);
+}
+
+// 週次レポート自動生成
+function generateWeeklyReport() {
+  const lastReport = localStorage.getItem('lastReportWeek');
+  const now = new Date();
+  const weekNum = Math.floor(now.getTime() / (7 * 24 * 60 * 60 * 1000));
+  if (lastReport === String(weekNum)) return; // 今週すでに生成済み
+
+  // 先週の月〜日を計算
+  const wd = now.getDay();
+  const thisMonday = new Date(now);
+  thisMonday.setDate(now.getDate() - wd + (wd === 0 ? -6 : 1));
+  thisMonday.setHours(0,0,0,0);
+  const lastMonday = new Date(thisMonday);
+  lastMonday.setDate(thisMonday.getDate() - 7);
+  const lastSunday = new Date(thisMonday);
+  lastSunday.setDate(thisMonday.getDate() - 1);
+
+  const fmt = d => `${d.getMonth()+1}/${d.getDate()}`;
+
+  const lastWeekTodos = todos.filter(t => {
+    if (!t.due) return false;
+    const d = new Date(t.due); d.setHours(0,0,0,0);
+    return d >= lastMonday && d <= lastSunday;
+  });
+
+  const completed = lastWeekTodos.filter(t => t.done).length;
+  const total     = lastWeekTodos.length;
+  const rate      = total > 0 ? Math.round(completed / total * 100) : 0;
+
+  if (total === 0) {
+    localStorage.setItem('lastReportWeek', String(weekNum));
+    return;
+  }
+
+  const report = `
+
+📊 週次レポート（${fmt(lastMonday)}〜${fmt(lastSunday)}）
+━━━━━━━━━━━━━━━
+✅ 完了: ${completed}件
+📌 未完了: ${total - completed}件
+🎯 達成率: ${rate}%
+━━━━━━━━━━━━━━━
+${lastWeekTodos.filter(t=>t.done).map(t=>'✓ '+t.text).join('
+')}
+${lastWeekTodos.filter(t=>!t.done).map(t=>'✗ '+t.text).join('
+')}
+`;
+
+  const currentMemo = localStorage.getItem('memo') || '';
+  localStorage.setItem('memo', report + currentMemo);
+  document.getElementById('memo-area').value = report + currentMemo;
+  localStorage.setItem('lastReportWeek', String(weekNum));
+
+  const banner = document.createElement('div');
+  banner.style.cssText = `position:fixed;top:calc(var(--safe-top) + 60px);left:50%;transform:translateX(-50%);background:var(--purple);color:#fff;padding:10px 18px;border-radius:20px;font-size:13px;z-index:500;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,0.3)`;
+  banner.textContent = `📊 先週の週次レポートをメモに追加しました`;
+  document.body.appendChild(banner);
+  setTimeout(() => banner.remove(), 3500);
+}
+
+autoArchive();
+generateWeeklyReport();
 
 buildCal();
 renderTodos();
