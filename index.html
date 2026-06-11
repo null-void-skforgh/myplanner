@@ -1158,10 +1158,8 @@ function generateWeeklyReport() {
 📌 未完了: ${total - completed}件
 🎯 達成率: ${rate}%
 ━━━━━━━━━━━━━━━
-${lastWeekTodos.filter(t=>t.done).map(t=>'✓ '+t.text).join('
-')}
-${lastWeekTodos.filter(t=>!t.done).map(t=>'✗ '+t.text).join('
-')}
+${lastWeekTodos.filter(t=>t.done).map(t=>'✓ '+t.text).join('\n')}
+${lastWeekTodos.filter(t=>!t.done).map(t=>'✗ '+t.text).join('\n')}
 `;
 
   const currentMemo = localStorage.getItem('memo') || '';
