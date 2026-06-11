@@ -345,6 +345,34 @@ body{display:flex;flex-direction:column;max-width:480px;margin:0 auto}
     </div>
   </div>
 
+  <!-- 編集モーダル -->
+<div id="edit-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:300;align-items:flex-end;justify-content:center">
+  <div style="background:var(--surface);border-radius:var(--radius) var(--radius) 0 0;padding:20px 20px calc(20px + var(--safe-bottom));width:100%;max-width:480px">
+    <div style="font-size:16px;font-weight:600;margin-bottom:14px">予定を編集</div>
+    <div class="field-row"><input type="text" id="edit-text" placeholder="内容..." /></div>
+    <div class="field-row">
+      <div class="field-group"><div class="field-label">開始</div><input type="time" id="edit-start" /></div>
+      <div class="field-group"><div class="field-label">終了</div><input type="time" id="edit-end" /></div>
+    </div>
+    <div class="field-label">色</div>
+    <div class="color-picker" id="edit-color-picker" style="margin-bottom:10px">
+      <div class="color-dot selected" data-color="0" style="background:#7F77DD"></div>
+      <div class="color-dot" data-color="1" style="background:#D4537E"></div>
+      <div class="color-dot" data-color="2" style="background:#3aabbb"></div>
+      <div class="color-dot" data-color="3" style="background:#4caf7d"></div>
+      <div class="color-dot" data-color="4" style="background:#E8923A"></div>
+      <div class="color-dot" data-color="5" style="background:#8e6bbf"></div>
+    </div>
+    <div class="field-label">繰り返し</div>
+    <div class="field-row" style="margin-bottom:14px"><select id="edit-repeat"><option value="none">なし</option><option value="daily">毎日</option><option value="weekly">毎週</option><option value="monthly">毎月</option></select></div>
+    <div style="display:flex;gap:8px">
+      <button id="edit-delete" style="padding:10px 16px;border-radius:var(--radius-sm);border:none;background:var(--pink-light);color:var(--pink);font-size:14px;cursor:pointer;font-weight:500">削除</button>
+      <button id="edit-cancel" style="flex:1;padding:10px;border-radius:var(--radius-sm);border:0.5px solid var(--border);background:var(--surface2);color:var(--text2);font-size:14px;cursor:pointer">キャンセル</button>
+      <button id="edit-save" style="flex:1;padding:10px;border-radius:var(--radius-sm);border:none;background:var(--purple);color:#fff;font-size:14px;cursor:pointer;font-weight:500">保存</button>
+    </div>
+  </div>
+</div>
+
   <!-- メモ -->
   <div class="page" id="page-memo">
     <div class="memo-header">
@@ -610,12 +638,13 @@ function renderDayItems() {
     const repeatLabel = item.repeat && item.repeat !== 'none' ? ` 🔁` : '';
     row.innerHTML = `
       <div class="day-item-bar" style="background:${COLORS[c]}"></div>
-      <div class="day-item-info">
+      <div class="day-item-info" style="cursor:pointer">
         <div class="day-item-text">${item.text}${repeatLabel}</div>
         ${tl ? `<div class="day-item-time">${tl}</div>` : ''}
       </div>
-      ${!item.fromRepeat ? `<button class="day-item-del" data-id="${item.id}">×</button>` : ''}`;
+      ${!item.fromRepeat ? `<button class="day-item-edit" data-id="${item.id}" style="background:none;border:none;cursor:pointer;color:var(--text2);font-size:13px;padding:0 6px">✏️</button><button class="day-item-del" data-id="${item.id}">×</button>` : ''}`;
     if (!item.fromRepeat) {
+      row.querySelector('.day-item-edit').addEventListener('click', () => openEditModal(item));
       row.querySelector('.day-item-del').addEventListener('click', () => {
         calItems[selectedKey] = (calItems[selectedKey] || []).filter(i => i.id !== item.id);
         saveCalItems(); buildCal(); renderDayItems();
@@ -923,6 +952,63 @@ function updateWidgetPreview() {
 }
 
 // Sync & Widget code
+// ── 編集モーダル ──
+let editingItemId = null;
+let editingColor = 0;
+
+function openEditModal(item) {
+  editingItemId = item.id;
+  editingColor = item.color ?? 1;
+  document.getElementById('edit-text').value = item.text;
+  document.getElementById('edit-start').value = item.start || '';
+  document.getElementById('edit-end').value = item.end || '';
+  document.getElementById('edit-repeat').value = item.repeat || 'none';
+  document.querySelectorAll('#edit-color-picker .color-dot').forEach(d => {
+    d.classList.toggle('selected', parseInt(d.dataset.color) === editingColor);
+  });
+  document.getElementById('edit-overlay').style.display = 'flex';
+}
+
+document.querySelectorAll('#edit-color-picker .color-dot').forEach(dot => {
+  dot.addEventListener('click', () => {
+    document.querySelectorAll('#edit-color-picker .color-dot').forEach(d => d.classList.remove('selected'));
+    dot.classList.add('selected');
+    editingColor = parseInt(dot.dataset.color);
+  });
+});
+
+document.getElementById('edit-cancel').addEventListener('click', () => {
+  document.getElementById('edit-overlay').style.display = 'none';
+});
+document.getElementById('edit-overlay').addEventListener('click', e => {
+  if (e.target === document.getElementById('edit-overlay'))
+    document.getElementById('edit-overlay').style.display = 'none';
+});
+document.getElementById('edit-save').addEventListener('click', () => {
+  const text = document.getElementById('edit-text').value.trim();
+  if (!text || !selectedKey) return;
+  calItems[selectedKey] = (calItems[selectedKey] || []).map(i => {
+    if (i.id !== editingItemId) return i;
+    return {
+      ...i,
+      text,
+      start: document.getElementById('edit-start').value,
+      end:   document.getElementById('edit-end').value,
+      color: editingColor,
+      repeat: document.getElementById('edit-repeat').value
+    };
+  });
+  saveCalItems();
+  document.getElementById('edit-overlay').style.display = 'none';
+  buildCal(); renderDayItems();
+});
+document.getElementById('edit-delete').addEventListener('click', () => {
+  calItems[selectedKey] = (calItems[selectedKey] || []).filter(i => i.id !== editingItemId);
+  saveCalItems();
+  document.getElementById('edit-overlay').style.display = 'none';
+  buildCal(); renderDayItems();
+});
+
 document.getElementById('sync-btn').addEventListener('click', () => {
   const data = encodeURIComponent(JSON.stringify(todos.filter(t => !t.done)));
   window.location.href = `scriptable:///run/${encodeURIComponent('マイプランナー')}?action=sync&todos=${data}`;
