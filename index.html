@@ -692,8 +692,14 @@ function renderWeekTodos() {
  
 function renderTodos() {
   const active = todos.filter(t => !t.done);
-  const urgent = active.filter(t => isUrgent(t.due));
-  const normal = active.filter(t => !isUrgent(t.due));
+  const sortByDue = arr => arr.slice().sort((a,b) => {
+    if (!a.due && !b.due) return 0;
+    if (!a.due) return 1;
+    if (!b.due) return -1;
+    return a.due.localeCompare(b.due);
+  });
+  const urgent = sortByDue(active.filter(t => isUrgent(t.due)));
+  const normal = sortByDue(active.filter(t => !isUrgent(t.due)));
   const done   = todos.filter(t => t.done);
   document.getElementById('urgent-section').style.display = urgent.length ? 'block' : 'none';
   ['todo-urgent','todo-active','todo-done'].forEach(id => document.getElementById(id).innerHTML = '');
@@ -755,8 +761,14 @@ memoArea.addEventListener('input', () => {
 // ── Widget preview ──
 function updateWidgetPreview() {
   const active = todos.filter(t => !t.done);
-  const urgent = active.filter(t => isUrgent(t.due));
-  const normal = active.filter(t => !isUrgent(t.due));
+  const sortByDue = arr => arr.slice().sort((a,b) => {
+    if (!a.due && !b.due) return 0;
+    if (!a.due) return 1;
+    if (!b.due) return -1;
+    return a.due.localeCompare(b.due);
+  });
+  const urgent = sortByDue(active.filter(t => isUrgent(t.due)));
+  const normal = sortByDue(active.filter(t => !isUrgent(t.due)));
   const done   = todos.filter(t => t.done);
   document.getElementById('wp-count').textContent = active.length + '件';
   document.getElementById('wp-done-count').textContent = done.length ? `完了 ${done.length}件` : '';
