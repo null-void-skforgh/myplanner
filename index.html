@@ -1192,18 +1192,9 @@ const TOEFL_TODOS = [{"id": 9000, "text": "TOEFL フェーズ0：現状把握", 
 const toeflBanner = document.getElementById('toefl-import-banner');
 const toeflBtn = document.getElementById('toefl-import-btn');
 
-// すでにインポート済みなら非表示
-if (localStorage.getItem('toeflImported') === 'true') {
-  toeflBanner.style.display = 'none';
-}
-
 toeflBtn.addEventListener('click', () => {
-  const alreadyExists = todos.some(t => t.id >= 9000 && t.id <= 9004);
-  if (alreadyExists) {
-    toeflBanner.style.display = 'none';
-    localStorage.setItem('toeflImported', 'true');
-    return;
-  }
+  // 既存のTOEFLタスクを削除してから再追加
+  todos = todos.filter(t => !(t.id >= 9000 && t.id <= 9004));
   todos = [...TOEFL_TODOS.map(t => ({...t})), ...todos];
   if (nextId < 9100) nextId = 9100;
   saveTodos();
