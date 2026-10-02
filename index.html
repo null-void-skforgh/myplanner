@@ -341,7 +341,7 @@ body{display:flex;flex-direction:column;max-width:480px;margin:0 auto}
       <span style="font-size:20px">📚</span>
       <div style="flex:1">
         <div style="font-size:13px;font-weight:600;color:var(--purple)">TOEFLスピーキング計画</div>
-        <div style="font-size:12px;color:var(--text2);margin-top:2px">17件のタスクをTodoに追加できます</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:2px">5件（フェーズ別）のタスクをTodoに追加できます</div>
       </div>
       <button id="toefl-import-btn" style="padding:8px 14px;border-radius:var(--radius-sm);border:none;background:var(--purple);color:#fff;font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap">追加する</button>
     </div>
@@ -829,7 +829,8 @@ function isUrgent(due) {
   const t = new Date(); t.setHours(0,0,0,0);
   const d = parseDue(due);
   if (!d) return false;
-  return (d - t) / 86400000 <= 1;
+  const diff = (d - t) / 86400000;
+  return diff >= 0 && diff <= 14; // 2週間以内
 }
 function isOverdue(due) {
   if (!due) return false;
@@ -1068,7 +1069,7 @@ const STORAGE_KEY = "myplanner_todos";
 ${embedTodos ? `const EXPORTED=${todosJson};if(!Keychain.contains(STORAGE_KEY)&&EXPORTED.length>0){Keychain.set(STORAGE_KEY,JSON.stringify(EXPORTED));}` : ''}
 function loadTodos(){try{const r=Keychain.contains(STORAGE_KEY)?Keychain.get(STORAGE_KEY):null;if(!r)return[{id:1,text:"アプリから同期してください",done:false,due:null}];return JSON.parse(r);}catch{return[];}}
 function saveTodos(t){Keychain.set(STORAGE_KEY,JSON.stringify(t));}
-function isUrgent(due){if(!due)return false;const t=new Date();t.setHours(0,0,0,0);const d=new Date(due);d.setHours(0,0,0,0);return(d-t)/86400000<=1;}
+function isUrgent(due){if(!due)return false;const t=new Date();t.setHours(0,0,0,0);const d=new Date(due);d.setHours(0,0,0,0);const diff=(d-t)/86400000;return diff>=0&&diff<=14;}
 function isOverdue(due){if(!due)return false;const t=new Date();t.setHours(0,0,0,0);const d=new Date(due);d.setHours(0,0,0,0);return d<t;}
 function dueLabel(due,time){if(!due)return"";const t=new Date();t.setHours(0,0,0,0);const d=new Date(due);d.setHours(0,0,0,0);const diff=Math.round((d-t)/86400000);const tp=time?" "+time:"";if(diff<0)return"期限切れ"+tp;if(diff===0)return"今日"+tp+"まで";if(diff===1)return"明日"+tp+"まで";return due.slice(5).replace("-","/")+tp+"まで";}
 const args=URLScheme.allParameters();
@@ -1187,7 +1188,7 @@ autoArchive();
 generateWeeklyReport();
 
 // TOEFLインポート
-const TOEFL_TODOS = [{"id": 9000, "text": "[TOEFL 0] ETS公式の練習問題を1回解く", "done": false, "due": "2026-10-01", "start": null, "end": null}, {"id": 9001, "text": "[TOEFL 0] スピーキング回答を録音して保存", "done": false, "due": "2026-10-01", "start": null, "end": null}, {"id": 9002, "text": "[TOEFL 0] 提出先が求めるスコアを確認", "done": false, "due": "2026-10-01", "start": null, "end": null}, {"id": 9003, "text": "[TOEFL 0] 受験日の予約時期を調べる", "done": false, "due": "2026-10-01", "start": null, "end": null}, {"id": 9004, "text": "[TOEFL 0] 新形式の詳細をETS公式で確認", "done": false, "due": "2026-10-01", "start": null, "end": null}, {"id": 9005, "text": "[TOEFL 1] 話のストック：自己紹介（1分）", "done": false, "due": "2026-10-16", "start": null, "end": null}, {"id": 9006, "text": "[TOEFL 1] 話のストック：研究分野（1分）", "done": false, "due": "2026-10-16", "start": null, "end": null}, {"id": 9007, "text": "[TOEFL 1] 話のストック：大学生活（1分）", "done": false, "due": "2026-10-16", "start": null, "end": null}, {"id": 9008, "text": "[TOEFL 1] 話のストック：趣味（1分）", "done": false, "due": "2026-10-16", "start": null, "end": null}, {"id": 9009, "text": "[TOEFL 1] 話のストック：過去の経験（1分）", "done": false, "due": "2026-10-16", "start": null, "end": null}, {"id": 9010, "text": "[TOEFL 2] 結論→理由→具体例の型で即答できる", "done": false, "due": "2026-12-01", "start": null, "end": null}, {"id": 9011, "text": "[TOEFL 3] 人間と英語で話す場を確保する", "done": false, "due": "2027-02-01", "start": null, "end": null}, {"id": 9012, "text": "[TOEFL 3] 基準録音と聞き比べて弱点を絞る", "done": false, "due": "2027-02-01", "start": null, "end": null}, {"id": 9013, "text": "[TOEFL 4] 本番形式の模試 1回目", "done": false, "due": "2027-04-04", "start": null, "end": null}, {"id": 9014, "text": "[TOEFL 4] 本番形式の模試 2回目", "done": false, "due": "2027-04-04", "start": null, "end": null}, {"id": 9015, "text": "[TOEFL 4] 本番形式の模試 3回目（任意）", "done": false, "due": "2027-04-04", "start": null, "end": null}, {"id": 9016, "text": "[TOEFL 4] 受験票・会場・持ち物を確認", "done": false, "due": "2027-04-04", "start": null, "end": null}];
+const TOEFL_TODOS = [{"id": 9000, "text": "TOEFL フェーズ0：現状把握", "done": false, "due": "2026-10-01", "start": null, "end": null}, {"id": 9001, "text": "TOEFL フェーズ1：口を慣らす", "done": false, "due": "2026-10-16", "start": null, "end": null}, {"id": 9002, "text": "TOEFL フェーズ2：即答力をつける", "done": false, "due": "2026-12-01", "start": null, "end": null}, {"id": 9003, "text": "TOEFL フェーズ3：試験形式＋実戦", "done": false, "due": "2027-02-01", "start": null, "end": null}, {"id": 9004, "text": "TOEFL フェーズ4：仕上げ", "done": false, "due": "2027-04-04", "start": null, "end": null}];
 const toeflBanner = document.getElementById('toefl-import-banner');
 const toeflBtn = document.getElementById('toefl-import-btn');
 
@@ -1197,7 +1198,7 @@ if (localStorage.getItem('toeflImported') === 'true') {
 }
 
 toeflBtn.addEventListener('click', () => {
-  const alreadyExists = todos.some(t => t.id >= 9000 && t.id <= 9016);
+  const alreadyExists = todos.some(t => t.id >= 9000 && t.id <= 9004);
   if (alreadyExists) {
     toeflBanner.style.display = 'none';
     localStorage.setItem('toeflImported', 'true');
@@ -1214,7 +1215,7 @@ toeflBtn.addEventListener('click', () => {
   // 完了バナー
   const banner = document.createElement('div');
   banner.style.cssText = 'position:fixed;top:calc(var(--safe-top) + 60px);left:50%;transform:translateX(-50%);background:var(--purple);color:#fff;padding:10px 18px;border-radius:20px;font-size:13px;z-index:500;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,0.3)';
-  banner.textContent = '📚 TOEFLタスクを17件追加しました！';
+  banner.textContent = '📚 TOEFLタスクを5件追加しました！';
   document.body.appendChild(banner);
   setTimeout(() => banner.remove(), 3000);
 });
