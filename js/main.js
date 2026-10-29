@@ -22,6 +22,7 @@ import { autoArchive, weeklyReport } from './features/startup-tasks.js';
 import { ensureNotesMigrated } from './features/notes.js';
 import { registerServiceWorker } from './pwa.js';
 import { maybeRemindBackup } from './features/backup.js';
+import { startScheduleSync } from './features/server.js';
 
 function boot() {
   const storage = createStorage();
@@ -107,6 +108,15 @@ function boot() {
   });
 
   registerServiceWorker();
+
+  // ── 通知 ──
+  startScheduleSync();
+  // 通知をタップしたら、その日の画面を開く（sw.js の notificationclick から）
+  navigator.serviceWorker?.addEventListener('message', e => {
+    if (e.data?.type !== 'open') return;
+    const hash = new URL(e.data.url).hash;
+    if (hash && hash !== location.hash) location.hash = hash;
+  });
 }
 
 try {

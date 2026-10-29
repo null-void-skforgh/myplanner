@@ -16,6 +16,8 @@ import { openIcsExport, importIcs } from './ics-io.js';
 import { openCalendarsSheet } from './calendars-sheet.js';
 import { sortedCalendars } from '../features/calendars.js';
 import { periodsOf, DEFAULT_PERIODS } from '../features/classes.js';
+import { isConnected, connect, disconnect, enablePush, status, sendTest, permission, syncSchedule, serverConf } from '../features/server.js';
+import { TIMED_PRESETS, reminderLabel } from '../features/notify.js';
 import { VERSION } from '../version.js';
 
 function segmented(options, current, onChange) {
@@ -76,6 +78,76 @@ function widgetPreview() {
     !a.active.length && h('div.wp-more', '✅ すべて完了！'));
 }
 
+const toggle = (checked, onChange) => h('span.switch', h('input', { type: 'checkbox', checked, onchange: e => onChange(e.target.checked) }), h('span.switch-ui'));
+
+const ERRORS = { bad_code: '接続コードが違います', unauthorized: 'サーバーとの接続が切れています。接続し直してください', http_502: '通知を届けられませんでした。「通知をオンにする」をやり直してください' };
+const errText = e => ERRORS[e?.message] || (e?.name === 'AbortError' || e instanceof TypeError ? 'サーバーにつながりませんでした。URLと電波を確かめてください' : `エラー（${e?.message || e}）`);
+
+/** 通知（サーバー接続・許可・毎朝のまとめなど） */
+function notifyCard(s, rerender) {
+  if (!isConnected()) {
+    const url = h('input.input', { type: 'url', placeholder: 'サーバーのURL（https://…workers.dev）', autocomplete: 'off', autocapitalize: 'off' });
+    const code = h('input.input', { type: 'text', placeholder: '接続コード', autocomplete: 'off', autocapitalize: 'characters' });
+    const btn = h('button.btn', { onclick: async () => {
+      if (!url.value.trim() || !code.value.trim()) { toast('URLと接続コードを入れてください'); return; }
+      btn.disabled = true; btn.textContent = '接続しています…';
+      try { await connect(url.value, code.value); toast('サーバーにつながりました。次に「通知をオンにする」を押してください'); rerender(); }
+      catch (e) { toast(errText(e)); btn.disabled = false; btn.textContent = '接続する'; }
+    } }, '接続する');
+    return h('section.card',
+      h('div.section-label', '🔔 通知'),
+      h('p.note', '予定の前・Todoの期限・毎朝のまとめを通知します。最初に1回だけ、マイプランナーのサーバーにつないでください。'),
+      h('div.btn-col', url, code, btn));
+  }
+
+  const st = h('div.notify-status', h('span.notify-dot'), h('span', '確認しています…'));
+  const showStatus = me => {
+    const perm = permission();
+    const on = me?.subscribed && perm === 'granted';
+    const next = me?.next ? new Date(me.next) : null;
+    clear(st, h('span.notify-dot' + (on ? '.on' : '.warn')),
+      h('span', on ? `通知オン・予定 ${me.pending}件` + (next ? `（次: ${next.getMonth() + 1}/${next.getDate()} ${next.getHours()}:${String(next.getMinutes()).padStart(2, '0')}）` : '')
+        : perm === 'denied' ? '通知が許可されていません' : '通知はまだオフです'));
+    enableBtn.hidden = on;
+    testBtn.hidden = !on;
+  };
+  const enableBtn = h('button.btn', { hidden: true, onclick: async () => {
+    try {
+      const r = await enablePush();
+      if (r === 'ok') { toast('通知をオンにしました'); refresh(); }
+      else if (r === 'not-standalone') toast('ホーム画面のアイコンから開いたときだけ、通知をオンにできます');
+      else if (r === 'denied') toast('iPhoneの「設定 → 通知 → マイプランナー」で通知を許可してください');
+      else toast('このブラウザは通知に対応していません（iOS 16.4 以上が必要です）');
+    } catch (e) { toast(errText(e)); }
+  } }, '通知をオンにする');
+  const testBtn = h('button.btn.secondary', { hidden: true, onclick: async () => {
+    try { await sendTest(); toast('テスト通知を送りました'); } catch (e) { toast(errText(e)); }
+  } }, 'テスト通知を送る');
+  const refresh = () => syncSchedule().catch(() => {}).then(status).then(showStatus).catch(e => { clear(st, h('span.notify-dot.warn'), h('span', errText(e))); enableBtn.hidden = true; });
+  refresh();
+
+  return h('section.card',
+    h('div.section-label', '🔔 通知'),
+    st,
+    h('div.btn-col', enableBtn, testBtn),
+    h('div.setting-row', h('span', '毎朝のまとめ'),
+      h('div.btn-row.tight',
+        h('input.input', { type: 'time', value: s.morningTime || '09:00', step: 300, disabled: s.notifyMorning === false,
+          onchange: e => e.target.value && app.store.setSettings({ morningTime: e.target.value }) }),
+        toggle(s.notifyMorning !== false, v => app.store.setSettings({ notifyMorning: v })))),
+    h('p.note.muted', 'その日の予定と、期限のTodo・期限切れのTodoを1つの通知にまとめます。'),
+    h('div.setting-row', h('span', '時刻つきTodoの10分前'), toggle(s.notifyTodos !== false, v => app.store.setSettings({ notifyTodos: v }))),
+    h('div.setting-row', h('span', '新しい予定の通知'),
+      h('select.input.auto', { onchange: e => app.store.setSettings({ defaultReminder: e.target.value === '' ? null : +e.target.value }) },
+        h('option', { value: '', selected: s.defaultReminder == null }, 'なし'),
+        TIMED_PRESETS.map(m => h('option', { value: m, selected: s.defaultReminder === m }, reminderLabel(m, false))))),
+    h('p.note', '予定ごとの通知は、予定の編集画面の「通知」で選べます（カスタムも可）。アプリを開くたびに30日先までの通知を予約し直すので、30日以上開かないとそれより先の通知は届きません。'),
+    h('button.btn.secondary.wide', { onclick: async () => {
+      if (!await confirmDialog('サーバーとの接続を解除しますか？', '解除する', '通知が届かなくなります。', true)) return;
+      await disconnect(); toast('接続を解除しました'); rerender();
+    } }, `接続を解除（${new URL(serverConf().url).host}）`));
+}
+
 /** 授業の時間割（各時限の開始・終了時刻） */
 function classPeriodsCard(s) {
   const periods = periodsOf(s).map(p => [...p]);
@@ -121,6 +193,8 @@ export function mountSettings(page) {
         h('div.setting-row', h('span', '予定の読み込み・書き出し（.ics）'),
           h('div.btn-row.tight', h('button.pill-btn', { onclick: importIcs }, '読み込む'), h('button.pill-btn', { onclick: openIcsExport }, '書き出す'))),
         h('p.note', 'Googleカレンダーの「設定 → インポート/エクスポート」や、他のアプリの .ics ファイルとやり取りできます。')),
+
+      notifyCard(s, render),
 
       classPeriodsCard(s),
 

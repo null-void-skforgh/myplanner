@@ -80,4 +80,9 @@ export const DEFAULT_SETTINGS = {
   dayStartHour: 7,      // 週・日表示を開いたときの初期スクロール位置
   defaultCalendarId: 'default',
   backupReminderDays: 7, // 0 でお知らせしない
+  // 通知（段階3）
+  notifyMorning: true,      // 毎朝のまとめ
+  morningTime: '09:00',
+  notifyTodos: true,        // 時刻つき Todo の10分前
+  defaultReminder: null,    // 新しい予定（時刻あり）の通知。null = なし
 };

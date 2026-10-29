@@ -10,8 +10,10 @@ import { COLOR_COUNT, COLOR_NAMES } from '../core/model.js';
 import { addEvent, updateOccurrence, removeOccurrence } from './calendar/actions.js';
 import { openRecurrenceEditor } from './recurrence-editor.js';
 import { sortedCalendars, defaultCalendarId } from '../features/calendars.js';
+import { TIMED_PRESETS, ALLDAY_PRESETS, reminderLabel } from '../features/notify.js';
+import { defaultReminders } from './calendar/actions.js';
 
-const FIELDS = ['title', 'allDay', 'start', 'end', 'calendarId', 'color', 'rrule', 'location', 'notes'];
+const FIELDS = ['title', 'allDay', 'start', 'end', 'calendarId', 'color', 'rrule', 'location', 'notes', 'reminders'];
 
 /** 地図アプリで場所を開く URL（iPhone ではマップが開く） */
 export const mapUrl = q => `https://maps.apple.com/?q=${encodeURIComponent(q)}`;
@@ -30,13 +32,16 @@ export function openEventEditor(target) {
     calendarId: app.store.state.calendars[src.calendarId] ? src.calendarId : 'default',
     color: src.color ?? null, rrule: src.rrule ?? null,
     location: src.location || '', notes: src.notes || '',
+    reminders: isNew && !src.reminders ? defaultReminders(!!src.allDay) : [...(src.reminders || [])],
   };
 
   // ── タイトル・日時 ──
   const titleIn = h('input.input.title-input', { type: 'text', placeholder: 'タイトル', value: v.title, enterkeyhint: 'done',
     oninput: e => { v.title = e.target.value; } });
   const allDayIn = h('input', { type: 'checkbox', checked: v.allDay, onchange: e => {
-    Object.assign(v, toggleAllDay(v, e.target.checked, 9)); v.allDay = e.target.checked; syncTimes();
+    Object.assign(v, toggleAllDay(v, e.target.checked, 9)); v.allDay = e.target.checked;
+    v.reminders = defaultReminders(v.allDay); // 終日と時刻ありでは通知の意味が違うので戻す
+    syncTimes(); renderReminders();
   } });
   const sDate = h('input.input', { type: 'date' });
   const sTime = h('input.input', { type: 'time', step: 300 });
@@ -104,6 +109,40 @@ export function openEventEditor(target) {
     clear(repeatWrap, sel);
   };
 
+  // ── 通知 ──
+  const remWrap = h('div.rem-wrap');
+  const renderReminders = (custom = false) => {
+    const presets = (v.allDay ? ALLDAY_PRESETS : TIMED_PRESETS).filter(m => !v.reminders.includes(m));
+    const sel = h('select.input.rem-add', { onchange: e => {
+      const val = e.target.value;
+      if (val === 'custom') { renderReminders(true); return; }
+      if (val !== '') v.reminders = [...v.reminders, +val].sort((a, b) => a - b);
+      renderReminders();
+    } },
+      h('option', { value: '' }, v.reminders.length ? '＋ 通知を追加' : 'なし'),
+      presets.map(m => h('option', { value: m }, reminderLabel(m, v.allDay))),
+      h('option', { value: 'custom' }, 'カスタム…'));
+    clear(remWrap,
+      v.reminders.map(m => h('span.chip.static.rem-chip', reminderLabel(m, v.allDay),
+        h('button.rem-x', { 'aria-label': '通知を削除', onclick: () => { v.reminders = v.reminders.filter(x => x !== m); renderReminders(); } }, icon('close')))),
+      v.reminders.length < 5 && sel,
+      custom && customReminder());
+  };
+  const customReminder = () => {
+    const add = m => { if (Number.isFinite(m) && !v.reminders.includes(m)) v.reminders = [...v.reminders, m].sort((a, b) => a - b); renderReminders(); };
+    if (v.allDay) {
+      const days = h('input.input.num', { type: 'number', min: 0, max: 60, value: 1, inputmode: 'numeric' });
+      const time = h('input.input', { type: 'time', value: '09:00', step: 300 });
+      return h('div.rem-custom', days, h('span', '日前の'), time,
+        h('button.pill-btn.primary', { onclick: () => add(Math.max(0, +days.value || 0) * 1440 - (timeToMin(time.value) ?? 540)) }, '追加'));
+    }
+    const num = h('input.input.num', { type: 'number', min: 0, max: 999, value: 20, inputmode: 'numeric' });
+    const unit = h('select.input', h('option', { value: 1 }, '分前'), h('option', { value: 60 }, '時間前'), h('option', { value: 1440 }, '日前'));
+    return h('div.rem-custom', num, unit,
+      h('button.pill-btn.primary', { onclick: () => add(Math.max(0, Math.round(+num.value || 0)) * +unit.value) }, '追加'));
+  };
+  renderReminders();
+
   // ── カレンダー・色 ──
   const calSel = h('select.input', { onchange: e => { v.calendarId = e.target.value; renderColors(); } },
     sortedCalendars().map(c => h('option', { value: c.id, selected: c.id === v.calendarId }, c.name)));
@@ -133,7 +172,7 @@ export function openEventEditor(target) {
   const save = async () => {
     if (!validate()) return;
     const fields = { title: v.title.trim(), allDay: v.allDay, start: v.start, end: v.end, calendarId: v.calendarId,
-      color: v.color, rrule: v.rrule, location: v.location.trim(), notes: v.notes };
+      color: v.color, rrule: v.rrule, location: v.location.trim(), notes: v.notes, reminders: v.reminders };
     if (isNew) {
       addEvent(fields);
       sheet.close();
@@ -157,6 +196,7 @@ export function openEventEditor(target) {
     h('div.field.row', h('span.field-label', '終了'), h('div.dt', eDate, eTime)),
     err,
     h('div.field.row', h('span.field-label', icon('repeat', 'icon inline'), '繰り返し'), repeatWrap),
+    h('div.field.row.rem-row', h('span.field-label', icon('bell', 'icon inline'), '通知'), remWrap),
     h('div.field.row', h('span.field-label', 'カレンダー'), calSel),
     h('div.field', h('div.field-label', '色'), colors),
     h('div.field.row.loc-row', locIn, mapLink),

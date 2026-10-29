@@ -1,2 +1,2 @@
 // アプリのバージョン。デプロイのたびに `npm run bump` で sw.js と一緒に上げる。
-export const VERSION = '2.4.0';
+export const VERSION = '2.5.0';

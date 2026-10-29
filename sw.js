@@ -2,7 +2,7 @@
 // 新しい版はインストール後に待機し、画面の「更新」ボタンで切り替わる（js/pwa.js）。
 // VERSION と ASSETS は `npm run bump` で自動更新する。手で編集しない。
 
-const VERSION = '2.4.0';
+const VERSION = '2.5.0';
 const CACHE = 'myplanner-' + VERSION;
 const ASSETS = [
   './',
@@ -32,6 +32,8 @@ const ASSETS = [
   'js/features/classes.js',
   'js/features/ics.js',
   'js/features/notes.js',
+  'js/features/notify.js',
+  'js/features/server.js',
   'js/features/startup-tasks.js',
   'js/features/todo-actions.js',
   'js/features/widget.js',
@@ -95,5 +97,29 @@ self.addEventListener('fetch', event => {
     const hit = await cache.match(req, { ignoreSearch: true });
     if (hit) return hit;
     try { return await fetch(req); } catch { return new Response('', { status: 504 }); }
+  })());
+});
+
+// ── 通知（サーバーから Web Push で届く） ──
+self.addEventListener('push', event => {
+  let d = {};
+  try { d = event.data?.json() || {}; } catch { d = { title: 'マイプランナー', body: event.data?.text() || '' }; }
+  event.waitUntil(self.registration.showNotification(d.title || 'マイプランナー', {
+    body: d.body || '', tag: d.tag, icon: 'icons/icon-192.png', badge: 'icons/icon-192.png', data: { url: d.url || './' },
+  }));
+});
+
+self.addEventListener('notificationclick', event => {
+  event.notification.close();
+  const url = new URL(event.notification.data?.url || './', self.registration.scope).href;
+  event.waitUntil((async () => {
+    const wins = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    const win = wins[0];
+    if (win) {
+      await win.focus();
+      win.postMessage({ type: 'open', url });
+      return;
+    }
+    await self.clients.openWindow(url);
   })());
 });

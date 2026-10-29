@@ -28,7 +28,14 @@ export async function removeOccurrence(occ) {
   return true;
 }
 
+/** 新しい予定の通知の既定（設定の「新しい予定の通知」。終日の予定は既定なし） */
+export function defaultReminders(allDay) {
+  const m = app.store.state.settings.defaultReminder;
+  return !allDay && Number.isFinite(m) ? [m] : [];
+}
+
 export function addEvent(fields, label) {
+  if (!fields.reminders) fields = { ...fields, reminders: defaultReminders(!!fields.allDay) };
   let ev;
   app.store.transact(label || `「${fields.title || '(タイトルなし)'}」を追加しました`, tx => { ev = createEvent(tx, fields); });
   return ev;

@@ -163,3 +163,19 @@ select.input { width: auto; padding-right: 28px; background-image: linear-gradie
 .quick-head .segmented { flex: 1; }
 .period-times { display: grid; grid-template-columns: auto 1fr auto 1fr; gap: 6px 6px; align-items: center; margin: 4px 0 8px; }
 .period-times .input { padding: 6px 6px; font-size: 14px; }
+
+/* 通知 */
+.rem-row { align-items: flex-start; }
+.rem-row .field-label { padding-top: 8px; }
+.rem-wrap { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; align-items: center; max-width: 68vw; }
+.rem-chip { display: inline-flex; align-items: center; gap: 4px; padding: 6px 6px 6px 10px; }
+.rem-x { display: inline-flex; padding: 2px; border-radius: 50%; color: var(--accent-ink); }
+.rem-x .icon { width: 14px; height: 14px; }
+.rem-add { width: auto; }
+.rem-custom { display: flex; gap: 6px; align-items: center; width: 100%; justify-content: flex-end; font-size: 14px; }
+.rem-custom .input { width: auto; }
+.notify-status { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+.notify-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--text3); flex-shrink: 0; }
+.notify-dot.on { background: #3BB273; }
+.notify-dot.warn { background: #EF9F27; }
+.input.auto { width: auto; }
