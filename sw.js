@@ -1,0 +1,90 @@
+// Service Worker：アプリ本体を事前にキャッシュしてオフラインでも開けるようにする。
+// 新しい版はインストール後に待機し、画面の「更新」ボタンで切り替わる（js/pwa.js）。
+// VERSION と ASSETS は `npm run bump` で自動更新する。手で編集しない。
+
+const VERSION = '2.0.0';
+const CACHE = 'myplanner-' + VERSION;
+const ASSETS = [
+  './',
+  'css/agenda.css',
+  'css/base.css',
+  'css/components.css',
+  'css/month.css',
+  'css/pages.css',
+  'css/timegrid.css',
+  'css/tokens.css',
+  'icons/apple-touch-icon.png',
+  'icons/icon-192.png',
+  'icons/icon-512.png',
+  'icons/icon-maskable-512.png',
+  'index.html',
+  'js/app.js',
+  'js/core/date.js',
+  'js/core/event-ops.js',
+  'js/core/events.js',
+  'js/core/migrate.js',
+  'js/core/model.js',
+  'js/core/recurrence.js',
+  'js/core/storage.js',
+  'js/core/store.js',
+  'js/features/startup-tasks.js',
+  'js/features/todo-actions.js',
+  'js/features/widget.js',
+  'js/main.js',
+  'js/nlp/parse-ja.js',
+  'js/pwa.js',
+  'js/ui/dom.js',
+  'js/ui/gesture.js',
+  'js/ui/router.js',
+  'js/ui/sheet.js',
+  'js/ui/theme.js',
+  'js/ui/toast.js',
+  'js/version.js',
+  'js/views/calendar/actions.js',
+  'js/views/calendar/agenda.js',
+  'js/views/calendar/index.js',
+  'js/views/calendar/items.js',
+  'js/views/calendar/month.js',
+  'js/views/calendar/timegrid.js',
+  'js/views/event-editor.js',
+  'js/views/memo.js',
+  'js/views/quick-add.js',
+  'js/views/search.js',
+  'js/views/settings.js',
+  'js/views/todo-editor.js',
+  'js/views/todo.js',
+  'manifest.webmanifest',
+];
+
+self.addEventListener('install', event => {
+  event.waitUntil((async () => {
+    const cache = await caches.open(CACHE);
+    // GitHub Pages の HTTP キャッシュ（10分）を避けて必ず最新を取る
+    await cache.addAll(ASSETS.map(url => new Request(url, { cache: 'reload' })));
+  })());
+});
+
+self.addEventListener('activate', event => {
+  event.waitUntil((async () => {
+    const keys = await caches.keys();
+    await Promise.all(keys.filter(k => k.startsWith('myplanner-') && k !== CACHE).map(k => caches.delete(k)));
+    await self.clients.claim();
+  })());
+});
+
+self.addEventListener('message', event => {
+  if (event.data?.type === 'SKIP_WAITING') self.skipWaiting();
+});
+
+self.addEventListener('fetch', event => {
+  const req = event.request;
+  if (req.method !== 'GET' || new URL(req.url).origin !== location.origin) return;
+  event.respondWith((async () => {
+    const cache = await caches.open(CACHE);
+    // 画面遷移は常にキャッシュ済みの index.html（ハッシュで画面を切り替えるため）
+    if (req.mode === 'navigate') return (await cache.match('index.html')) || fetch(req);
+    const hit = await cache.match(req, { ignoreSearch: true });
+    if (hit) return hit;
+    try { return await fetch(req); } catch { return new Response('', { status: 504 }); }
+  })());
+});

@@ -1,0 +1,45 @@
+.tg { display: flex; flex-direction: column; height: 100%; --gutter: 44px; --hour: 52px; }
+.tg-head { display: grid; border-bottom: 0.5px solid var(--border); padding: 4px 0; }
+.tg-dayhead { display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 2px 0; }
+.tg-wd { font-size: 11px; color: var(--text2); }
+.tg-num { font-size: 17px; font-weight: 600; width: 30px; height: 30px; line-height: 30px; border-radius: 50%; text-align: center; }
+.tg-dayhead.sun .tg-wd, .tg-dayhead.sun .tg-num { color: var(--sun); }
+.tg-dayhead.sat .tg-wd, .tg-dayhead.sat .tg-num { color: var(--sat); }
+.tg-dayhead.today .tg-num { background: var(--accent); color: var(--on-accent); }
+.tg.day .tg-head { grid-template-columns: var(--gutter) 1fr !important; }
+.tg.day .tg-dayhead { flex-direction: row; gap: 8px; justify-content: flex-start; padding-left: 6px; }
+
+.tg-allday { display: grid; border-bottom: 0.5px solid var(--border); max-height: 28vh; overflow-y: auto; min-height: 24px; }
+.tg-allday-label { font-size: 10px; color: var(--text3); text-align: right; padding: 5px 6px 0 0; }
+.tg-allday-layer { position: relative; }
+.tev-bar { position: absolute; height: 18px; line-height: 18px; font-size: 11px; border-radius: 4px; padding: 0 5px; overflow: hidden; white-space: nowrap; background: var(--ev); color: #fff; font-weight: 500; margin-left: 1px; cursor: pointer; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+:root[data-theme="dark"] .tev-bar { color: #16151f; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .tev-bar { color: #16151f; } }
+.tev-bar.todo { background: var(--accent-bg); color: var(--accent-ink); }
+.tev-bar.cont-l { border-top-left-radius: 0; border-bottom-left-radius: 0; margin-left: 0; }
+.tev-bar.cont-r { border-top-right-radius: 0; border-bottom-right-radius: 0; }
+.tev-bar.dragging { z-index: 5; box-shadow: var(--shadow); opacity: .9; }
+
+.tg-scroll { flex: 1; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; position: relative; }
+.tg-canvas { display: grid; grid-template-columns: var(--gutter) 1fr; position: relative; }
+.tg-gutter { position: relative; }
+.tg-hour { height: var(--hour); font-size: 10px; color: var(--text3); text-align: right; padding-right: 6px; transform: translateY(-6px); }
+.tg-cols { display: grid; position: relative;
+  background-image: repeating-linear-gradient(to bottom, var(--border) 0, var(--border) 1px, transparent 1px, transparent var(--hour)); }
+.tg-col { position: relative; border-left: 0.5px solid var(--border); user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+.tg-col.today { background: color-mix(in srgb, var(--accent) 4%, transparent); }
+
+.tev { position: absolute; margin-left: 2px; border-radius: 5px; padding: 2px 5px; overflow: hidden; background: var(--ev-bg); color: var(--ev-ink); border-left: 3px solid var(--ev); font-size: 11.5px; line-height: 1.3; cursor: pointer; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; transition: box-shadow .15s; }
+.tev-title { font-weight: 600; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; word-break: break-all; }
+.tev-time { font-size: 10.5px; opacity: .85; white-space: nowrap; }
+/* 重なって細くなった予定は1行で切る */
+.tev.split .tev-title { display: block; white-space: nowrap; overflow: hidden; text-overflow: clip; }
+@media (max-width: 600px) { .tg.week .tev-time { display: none; } .tg.week .tev { padding: 2px 3px; font-size: 11px; } }
+.tev.short { display: flex; gap: 4px; align-items: baseline; padding-top: 0; }
+.tev.short .tev-title { -webkit-line-clamp: 1; flex-shrink: 1; }
+.tev-handle { position: absolute; left: 0; right: 0; bottom: 0; height: 14px; display: flex; align-items: center; justify-content: center; cursor: ns-resize; }
+.tev-handle::after { content: ""; width: 18px; height: 3px; border-radius: 2px; background: var(--ev); opacity: .55; }
+.tev.dragging, .tev.resizing { z-index: 30; box-shadow: var(--shadow); opacity: .95; }
+.tev.ghost { opacity: .85; border-left-style: dashed; z-index: 30; }
+.tg-now { position: absolute; left: -1px; right: 0; height: 2px; background: var(--red); z-index: 10; pointer-events: none; }
+.tg-now::before { content: ""; position: absolute; left: -5px; top: -4px; width: 10px; height: 10px; border-radius: 50%; background: var(--red); }

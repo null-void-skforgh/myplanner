@@ -1,0 +1,33 @@
+/* Todo */
+.todo-add { display: flex; gap: 8px; margin-bottom: 4px; }
+.todo-add .btn { flex-shrink: 0; }
+.this-week { padding-bottom: 8px; }
+.todo-list { display: flex; flex-direction: column; gap: 6px; }
+.todo-item { display: flex; align-items: center; gap: 10px; background: var(--surface); border-radius: var(--radius-sm); padding: 8px 6px 8px 12px; border: 0.5px solid var(--border); }
+.this-week .todo-item { border: none; padding-left: 0; background: transparent; }
+.todo-body { flex: 1; min-width: 0; text-align: left; padding: 2px 0; }
+.todo-text { font-size: 15px; overflow-wrap: anywhere; }
+.todo-item.done .todo-text { text-decoration: line-through; color: var(--text3); }
+.todo-item.trashed { opacity: .75; }
+.todo-due { font-size: 12px; margin-top: 2px; color: var(--text2); }
+.todo-due.over { color: var(--red); font-weight: 600; }
+.todo-due.soon { color: var(--amber); font-weight: 600; }
+
+/* メモ */
+.memo-wrap { flex: 1; min-height: 0; padding: 12px 14px; display: flex; }
+.memo-area { flex: 1; width: 100%; border: 0.5px solid var(--border); border-radius: var(--radius); background: var(--surface); padding: 14px; font-size: 16px; line-height: 1.7; resize: none; }
+.memo-area:focus { outline: none; border-color: var(--accent); }
+.memo-saved { font-size: 12px; color: var(--text3); transition: opacity .3s; padding-right: 6px; }
+
+/* 設定 */
+.setting-row > span:first-child { min-width: 0; }
+.setting-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 0; border-top: 0.5px solid var(--border); font-size: 14.5px; }
+.card .section-label + .setting-row { border-top: none; }
+.steps { padding-left: 22px; font-size: 13px; line-height: 1.6; color: var(--text2); margin-top: 14px; display: flex; flex-direction: column; gap: 8px; }
+.steps b { color: var(--text); }
+
+/* 検索 */
+.search { display: flex; flex-direction: column; gap: 6px; }
+.search-input { position: sticky; top: 0; z-index: 1; }
+.search-section { display: flex; flex-direction: column; gap: 6px; }
+.search-item { align-items: center; }

@@ -1,0 +1,71 @@
+/* 色・寸法のトークン。ダークモードは OS 設定（自動）か data-theme で切り替える */
+:root {
+  color-scheme: light;
+  --bg: #f5f4f0; --surface: #ffffff; --surface2: #f0eff7; --surface3: #e8e7f2;
+  --text: #1a1a2e; --text2: #5f5e70; --text3: #9a99a8;
+  --border: #e5e4ee; --border-strong: #d3d2e0;
+  --accent: #6f66d6; --accent-ink: #5148c0; --accent-bg: #eeedfe; --on-accent: #fff;
+  --red: #d63c3b; --red-bg: #fdecec; --amber: #b06c10;
+  --sun: #d0466f; --sat: #3f74c9;
+  --today-bg: #f7f6ff; --other-bg: #faf9f6;
+  --shadow: 0 6px 24px rgba(20, 18, 50, .14);
+  --overlay: rgba(10, 10, 20, .38);
+
+  --c0: #7F77DD; --c0-bg: #eceafd; --c0-ink: #443bab;
+  --c1: #D4537E; --c1-bg: #fbe7ee; --c1-ink: #9b2853;
+  --c2: #3aabbb; --c2-bg: #def3f6; --c2-ink: #19707c;
+  --c3: #4caf7d; --c3-bg: #e2f4ea; --c3-ink: #26744b;
+  --c4: #E8923A; --c4-bg: #fdeedd; --c4-ink: #9a560f;
+  --c5: #8e6bbf; --c5-bg: #efe9f8; --c5-ink: #5e3d8f;
+
+  --radius: 14px; --radius-sm: 10px;
+  --safe-top: env(safe-area-inset-top, 0px); --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --font: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #121119; --surface: #1c1b27; --surface2: #262536; --surface3: #302f42;
+    --text: #f0eff9; --text2: #b0afc4; --text3: #737289;
+    --border: #2c2b3c; --border-strong: #3b3a50;
+    --accent: #9f97f0; --accent-ink: #b9b3ff; --accent-bg: #2b2948; --on-accent: #16151f;
+    --red: #f08584; --red-bg: #3a1f22; --amber: #f0a742;
+    --sun: #f08aa8; --sat: #84aef0;
+    --today-bg: #201f33; --other-bg: #17161f;
+    --shadow: 0 6px 24px rgba(0, 0, 0, .5);
+    --overlay: rgba(0, 0, 0, .55);
+    --c0-bg: #2c2950; --c0-ink: #c9c4ff;
+    --c1-bg: #43222f; --c1-ink: #f5a9c4;
+    --c2-bg: #173a3f; --c2-ink: #93dfe9;
+    --c3-bg: #1a3b2a; --c3-ink: #9fe3bd;
+    --c4-bg: #43301a; --c4-ink: #f7c690;
+    --c5-bg: #33284d; --c5-ink: #d4bdf3;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #121119; --surface: #1c1b27; --surface2: #262536; --surface3: #302f42;
+  --text: #f0eff9; --text2: #b0afc4; --text3: #737289;
+  --border: #2c2b3c; --border-strong: #3b3a50;
+  --accent: #9f97f0; --accent-ink: #b9b3ff; --accent-bg: #2b2948; --on-accent: #16151f;
+  --red: #f08584; --red-bg: #3a1f22; --amber: #f0a742;
+  --sun: #f08aa8; --sat: #84aef0;
+  --today-bg: #201f33; --other-bg: #17161f;
+  --shadow: 0 6px 24px rgba(0, 0, 0, .5);
+  --overlay: rgba(0, 0, 0, .55);
+  --c0-bg: #2c2950; --c0-ink: #c9c4ff;
+  --c1-bg: #43222f; --c1-ink: #f5a9c4;
+  --c2-bg: #173a3f; --c2-ink: #93dfe9;
+  --c3-bg: #1a3b2a; --c3-ink: #9fe3bd;
+  --c4-bg: #43301a; --c4-ink: #f7c690;
+  --c5-bg: #33284d; --c5-ink: #d4bdf3;
+}
+
+/* 予定の色クラス（.c0〜.c5）。段階2でカレンダーごとの色を追加するときもこの仕組みを使う */
+.c0 { --ev: var(--c0); --ev-bg: var(--c0-bg); --ev-ink: var(--c0-ink); }
+.c1 { --ev: var(--c1); --ev-bg: var(--c1-bg); --ev-ink: var(--c1-ink); }
+.c2 { --ev: var(--c2); --ev-bg: var(--c2-bg); --ev-ink: var(--c2-ink); }
+.c3 { --ev: var(--c3); --ev-bg: var(--c3-bg); --ev-ink: var(--c3-ink); }
+.c4 { --ev: var(--c4); --ev-bg: var(--c4-bg); --ev-ink: var(--c4-ink); }
+.c5 { --ev: var(--c5); --ev-bg: var(--c5-bg); --ev-ink: var(--c5-ink); }
