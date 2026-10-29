@@ -4,7 +4,7 @@
 import { KEYS } from './storage.js';
 import { DEFAULT_CALENDARS, DEFAULT_SETTINGS } from './model.js';
 
-const COLLECTIONS = ['events', 'todos', 'trash', 'calendars'];
+const COLLECTIONS = ['events', 'todos', 'trash', 'calendars', 'notes', 'reviews'];
 const UNDO_LIMIT = 50;
 
 export function createStore(storage) {
@@ -13,6 +13,8 @@ export function createStore(storage) {
     todos: storage.get(KEYS.todos, {}),
     trash: storage.get(KEYS.trash, {}),
     calendars: storage.get(KEYS.calendars, null) || structuredClone(DEFAULT_CALENDARS),
+    notes: storage.get(KEYS.notes, {}),
+    reviews: storage.get(KEYS.reviews, {}),
     settings: { ...DEFAULT_SETTINGS, ...storage.get(KEYS.settings, {}) },
     meta: storage.get(KEYS.meta, {}),
     memo: storage.getRaw(KEYS.memo) ?? '',
@@ -120,6 +122,7 @@ export function createStore(storage) {
     // ── 便利な読み出し ──
     eventList: () => Object.values(state.events).filter(e => !e.deletedAt),
     todoList: () => Object.values(state.todos),
+    noteList: () => Object.values(state.notes).filter(n => !n.deletedAt),
     isCalendarVisible: ev => state.calendars[ev.calendarId]?.visible !== false,
   };
 }

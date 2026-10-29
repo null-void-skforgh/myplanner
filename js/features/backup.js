@@ -25,7 +25,8 @@ export function saveFile(file) {
 export function exportBackup() {
   const { state } = app.store;
   const data = { app: 'myplanner', schema: SCHEMA_VERSION, exportedAt: new Date().toISOString(),
-    events: state.events, todos: state.todos, trash: state.trash, calendars: state.calendars, memo: state.memo, settings: state.settings };
+    events: state.events, todos: state.todos, trash: state.trash, calendars: state.calendars, notes: state.notes, reviews: state.reviews,
+    memo: state.memo, settings: state.settings };
   const name = `myplanner-backup-${new Date().toISOString().slice(0, 10)}.json`;
   const file = new File([JSON.stringify(data, null, 1)], name, { type: 'application/json' });
   return saveFile(file).then(ok => {

@@ -13,9 +13,9 @@ import { defaultCalendarId } from '../features/calendars.js';
 const EXAMPLES = ['明日15時 歯医者', '金曜 18-20時 飲み会', '来週月曜 終日 出張', '毎週火曜 10時 ゼミ', '11/3〜11/5 旅行'];
 
 /** @param {{baseDate?:string, mode?:'event'|'todo'}} opts */
-export function openQuickAdd({ baseDate, mode = 'event' } = {}) {
+export function openQuickAdd({ baseDate, mode = 'event', text = '' } = {}) {
   let kind = mode;
-  const input = h('input.input.quick-input', { type: 'text', placeholder: '例: 明日15時 歯医者', enterkeyhint: 'done', autocomplete: 'off' });
+  const input = h('input.input.quick-input', { type: 'text', placeholder: '例: 明日15時 歯医者', enterkeyhint: 'done', autocomplete: 'off', value: text });
   const preview = h('div.quick-preview');
   const seg = h('div.segmented.small', [['event', '予定'], ['todo', 'Todo']].map(([k, label]) =>
     h('button', { 'aria-selected': String(k === kind), onclick: e => {

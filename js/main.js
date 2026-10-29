@@ -18,6 +18,7 @@ import { openQuickAdd } from './views/quick-add.js';
 import { openTodoEditor } from './views/todo-editor.js';
 import { openSearch } from './views/search.js';
 import { autoArchive, weeklyReport } from './features/startup-tasks.js';
+import { ensureNotesMigrated } from './features/notes.js';
 import { registerServiceWorker } from './pwa.js';
 import { maybeRemindBackup } from './features/backup.js';
 
@@ -26,6 +27,7 @@ function boot() {
   const migration = runMigration(storage);
   const store = createStore(storage);
   app.store = store;
+  const notesMigration = ensureNotesMigrated();
 
   applyTheme(store.state.settings.theme);
   watchSystemTheme(() => store.state.settings.theme);
@@ -45,6 +47,7 @@ function boot() {
   tabs.forEach(t => t.addEventListener('click', () => {
     const page = t.dataset.page;
     if (page === router.state.page && page === 'cal') router.go({ date: todayKey() });
+    else if (page === router.state.page && page === 'memo') pages.memo.toList();
     else router.go({ page }, { push: true });
   }));
 
@@ -54,6 +57,7 @@ function boot() {
     pages[page].render();
   }
   router.subscribe((s, prev) => {
+    if (prev.page === 'memo' && s.page !== 'memo') pages.memo.flush?.();
     if (s.page !== prev.page) showPage(s.page);
     else if (s.page === 'cal') pages.cal.render();
   });
@@ -76,6 +80,7 @@ function boot() {
   // ── 起動時の自動処理 ──
   const messages = [];
   if (migration) messages.push(`旧データを引き継ぎました（予定 ${migration.events}件・Todo ${migration.todos}件）`);
+  if (notesMigration?.reviews) messages.push(`メモを整理しました（週次レポート ${notesMigration.reviews}件を「振り返り」に移動）`);
   const reportMsg = weeklyReport();
   if (reportMsg) messages.push(reportMsg);
   messages.forEach((m, i) => setTimeout(() => toast(m, { duration: 3500 }), i * 3800));

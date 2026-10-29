@@ -56,6 +56,18 @@ export function newTodo(p = {}, now = Date.now()) {
   };
 }
 
+/** メモ（タイトルは本文の1行目から作る） */
+export function newNote(p = {}, now = Date.now()) {
+  return {
+    id: p.id ?? uid('n'),
+    body: p.body ?? '',
+    pinned: !!p.pinned,
+    createdAt: p.createdAt ?? now,
+    updatedAt: p.updatedAt ?? now,
+    deletedAt: p.deletedAt ?? null,
+  };
+}
+
 export const DEFAULT_CALENDARS = {
   default: { id: 'default', name: 'マイカレンダー', color: 0, visible: true, source: { provider: 'local' } },
 };

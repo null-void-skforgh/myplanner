@@ -6,6 +6,7 @@ import { openSheet } from '../ui/sheet.js';
 import { todayKey, addDays, fmtJP, fmtMD, parts } from '../core/date.js';
 import { occurrencesInRange, startDate, timeRangeLabel } from '../core/events.js';
 import { describeRRule } from '../core/recurrence.js';
+import { noteTitle } from '../features/notes.js';
 
 const norm = s => String(s || '').normalize('NFKC').toLowerCase();
 
@@ -35,7 +36,8 @@ export function openSearch() {
       return fa ? (a.day < b.day ? -1 : 1) : (a.day > b.day ? -1 : 1);
     });
     const todos = store.todoList().filter(t => hit(t.text)).sort((a, b) => a.done - b.done);
-    const memoLines = store.state.memo.split('\n').map((l, i) => ({ l, i })).filter(x => x.l.trim() && hit(x.l)).slice(0, 30);
+    const notes = store.noteList().filter(n => hit(n.body)).sort((a, b) => b.updatedAt - a.updatedAt).slice(0, 50)
+      .map(n => ({ n, line: n.body.split('\n').find(l => l.trim() && hit(l)) || noteTitle(n) }));
 
     const sections = [];
     if (evs.length) sections.push(h('div.search-section', h('div.section-label', `予定（${evs.length}）`),
@@ -50,9 +52,9 @@ export function openSearch() {
         h('span.check' + (t.done ? '.checked' : ''), t.done && icon('check')),
         h('div.agenda-body', h('div.agenda-title' + (t.done ? '.done' : ''), t.text),
           t.due && h('div.agenda-time', `期限 ${fmtMD(t.due)}`))))));
-    if (memoLines.length) sections.push(h('div.search-section', h('div.section-label', `メモ（${memoLines.length}）`),
-      memoLines.map(({ l }) => h('button.search-item', { onclick: () => { sheet.close(); app.router.go({ page: 'memo' }, { push: true }); } },
-        h('div.agenda-body', h('div.agenda-title', l.trim()))))));
+    if (notes.length) sections.push(h('div.search-section', h('div.section-label', `メモ（${notes.length}）`),
+      notes.map(({ n, line }) => h('button.search-item', { onclick: () => { sheet.close(); app.openNote(n.id); } },
+        h('div.agenda-body', h('div.agenda-title', noteTitle(n)), line.trim() !== noteTitle(n) && h('div.agenda-time', line.trim()))))));
     clear(results, sections.length ? sections : h('div.empty-state', '見つかりませんでした'));
   }
 

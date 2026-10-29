@@ -2,7 +2,7 @@
 // 新しい版はインストール後に待機し、画面の「更新」ボタンで切り替わる（js/pwa.js）。
 // VERSION と ASSETS は `npm run bump` で自動更新する。手で編集しない。
 
-const VERSION = '2.1.0';
+const VERSION = '2.2.0';
 const CACHE = 'myplanner-' + VERSION;
 const ASSETS = [
   './',
@@ -30,6 +30,7 @@ const ASSETS = [
   'js/features/backup.js',
   'js/features/calendars.js',
   'js/features/ics.js',
+  'js/features/notes.js',
   'js/features/startup-tasks.js',
   'js/features/todo-actions.js',
   'js/features/widget.js',

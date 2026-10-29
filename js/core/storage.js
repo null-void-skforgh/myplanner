@@ -9,6 +9,8 @@ export const KEYS = {
   todos: PREFIX + 'todos',
   trash: PREFIX + 'trash',
   calendars: PREFIX + 'calendars',
+  notes: PREFIX + 'notes',
+  reviews: PREFIX + 'reviews',
   memo: PREFIX + 'memo',
   settings: PREFIX + 'settings',
   meta: PREFIX + 'meta',
