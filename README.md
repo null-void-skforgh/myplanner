@@ -52,13 +52,18 @@ todo-widget.js           Scriptable 用ウィジェット（v1 と同じ）
 - iOS のホーム画面アプリのデータは Safari とは別に保存される。URL（`/myplanner/`）を変えない限り引き継がれるが、
   アイコンを削除するとデータも消える。設定画面からバックアップ（JSON）を書き出せる。
 
-## 段階2・3に向けた拡張ポイント
+## 段階2で入ったもの
+
+- カレンダー（`state.calendars`）：名前・色・表示切替・既定のカレンダー。予定の `color` が null ならカレンダーの色
+- 繰り返しの詳細（`core/recurrence.js`）：間隔、複数曜日、毎月第N／最終◯曜日（`byDay: ['2TU']`, `['-1FR']`）、終了日・回数
+- 場所・メモ（`Event.location` / `Event.notes`）。場所は Apple マップで開ける
+- .ics の読み込み・書き出し（`features/ics.js`）。同じ UID は更新扱い。RECURRENCE-ID（この回だけ変更）にも対応
+- バックアップのお知らせ（`features/backup.js`）：最後の書き出しから7日（設定で変更可）
+
+## 段階3に向けた拡張ポイント
 
 | やること | 触る場所 |
 |---|---|
-| カレンダーの色分け・表示切替 | `state.calendars`（`calendarId` は既に全予定にある）、`store.isCalendarVisible`、設定画面 |
-| 詳細な繰り返し | `core/recurrence.js`（`expandDates` と `REPEAT_PRESETS`）、予定編集画面 |
-| 場所とメモ | `Event.location` / `Event.notes`（保存済み・検索対象）、予定編集画面に入力欄を追加 |
-| .ics 入出力 | Event は RRULE 互換・終日の end は排他なので 1:1 で変換できる。`features/ics.js` を追加 |
 | 通知 | `Event.reminders`（空配列で保存済み） |
-| Google カレンダー同期 | `Event.source`（provider / externalId / etag）、`updatedAt`、削除は `deletedAt` で印を付けて残す。`js/integrations/` に provider を追加。保存先を IndexedDB に替える場合は `core/storage.js` だけ差し替える |
+| Google カレンダー同期 | `Event.source`（provider / externalId / etag）、`Calendar.source`、`updatedAt`、削除は `deletedAt` で印を付けて残す。`js/integrations/` に provider を追加。保存先を IndexedDB に替える場合は `core/storage.js` だけ差し替える。予定の変換は `features/ics.js` の RRULE 変換を流用できる |
+| Google ドライブへの自動バックアップ | `features/backup.js` の `exportBackup` のデータを Drive API で保存 |

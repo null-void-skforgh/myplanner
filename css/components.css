@@ -107,3 +107,45 @@ select.input { width: auto; padding-right: 28px; background-image: linear-gradie
 .quick-result { background: var(--accent-bg); border-radius: var(--radius-sm); padding: 12px 14px; }
 .quick-title { font-weight: 700; font-size: 16px; color: var(--accent-ink); }
 .quick-when { font-size: 14px; color: var(--text2); margin-top: 3px; }
+
+/* ── 段階2 ── */
+.input.num { width: 64px; text-align: center; padding: 8px 6px; }
+.notes-input { min-height: 84px; resize: vertical; line-height: 1.5; }
+.loc-row .input { flex: 1; }
+.loc-row a.pill-btn { text-decoration: none; color: var(--accent-ink); }
+.repeat-wrap select { max-width: 60vw; }
+.color-dot.cal-default { position: relative; }
+.color-dot.cal-default::after { content: "自"; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #fff; }
+
+.wd-picker { display: flex; gap: 6px; }
+.wd-btn { flex: 1; aspect-ratio: 1; max-width: 42px; border-radius: 50%; background: var(--surface2); font-weight: 600; font-size: 14px; }
+.wd-btn.sun { color: var(--sun); } .wd-btn.sat { color: var(--sat); }
+.wd-btn[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); }
+.radio { display: flex; align-items: center; gap: 10px; padding: 8px 2px; font-size: 15px; }
+.radio input { width: 20px; height: 20px; accent-color: var(--accent); }
+.radio-row { display: flex; align-items: center; gap: 10px; min-height: 44px; }
+.radio-row .input { width: auto; }
+.inline-num { display: inline-flex; align-items: center; gap: 6px; }
+
+.cal-list { display: flex; flex-direction: column; gap: 4px; }
+.cal-row { display: flex; align-items: center; gap: 10px; padding: 6px 2px; border-bottom: 0.5px solid var(--border); }
+.cal-check { position: relative; width: 26px; height: 26px; flex-shrink: 0; }
+.cal-check input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; z-index: 1; }
+.cal-box { position: absolute; inset: 0; border-radius: 7px; border: 2px solid var(--ev); display: flex; align-items: center; justify-content: center; color: transparent; }
+.cal-box .icon { width: 16px; height: 16px; stroke-width: 3; }
+.cal-check input:checked + .cal-box { background: var(--ev); color: #fff; }
+.cal-name { flex: 1; display: flex; align-items: center; gap: 8px; text-align: left; padding: 8px 0; font-size: 15px; min-width: 0; }
+.cal-name > span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cal-badge { font-size: 11px; padding: 1px 6px; border-radius: 6px; background: var(--accent-bg); color: var(--accent-ink); flex-shrink: 0; }
+.cal-count { margin-left: auto; font-size: 12px; color: var(--text3); flex-shrink: 0; }
+.cal-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--ev); display: inline-block; }
+.cal-export { justify-content: flex-start; }
+
+.setting-row.link { width: 100%; text-align: left; }
+.btn-row.tight { flex: 0 0 auto; gap: 6px; }
+
+.backup-banner { position: fixed; left: 12px; right: 12px; bottom: calc(var(--safe-bottom) + 70px); z-index: 450; max-width: 520px; margin: 0 auto; background: var(--surface); border: 1px solid var(--border-strong); border-radius: var(--radius); box-shadow: var(--shadow); padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+.backup-text { display: flex; flex-direction: column; gap: 3px; font-size: 13.5px; color: var(--text2); }
+.backup-text b { color: var(--text); font-size: 15px; }
+.backup-actions { display: flex; gap: 8px; }
+.backup-actions .btn { flex: 1; padding: 10px; }

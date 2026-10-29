@@ -19,6 +19,7 @@ import { openTodoEditor } from './views/todo-editor.js';
 import { openSearch } from './views/search.js';
 import { autoArchive, weeklyReport } from './features/startup-tasks.js';
 import { registerServiceWorker } from './pwa.js';
+import { maybeRemindBackup } from './features/backup.js';
 
 function boot() {
   const storage = createStorage();
@@ -79,6 +80,7 @@ function boot() {
   if (reportMsg) messages.push(reportMsg);
   messages.forEach((m, i) => setTimeout(() => toast(m, { duration: 3500 }), i * 3800));
   setTimeout(autoArchive, messages.length * 3800);
+  if (!migration) maybeRemindBackup();
 
   // 日付が変わってから戻ってきたら描き直す
   let lastDay = todayKey();

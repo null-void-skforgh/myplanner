@@ -1,7 +1,8 @@
 // データの形（スキーマ v2）
 // 段階2・3で使う項目（location, notes, reminders, source など）も先に持たせておく。
 
-export const COLOR_COUNT = 6;
+export const COLOR_COUNT = 10;
+export const COLOR_NAMES = ['ラベンダー', 'ピンク', 'ターコイズ', 'グリーン', 'オレンジ', 'パープル', 'ブルー', 'レッド', 'マスタード', 'グレー'];
 
 export function uid(prefix = '') {
   const rnd = (globalThis.crypto && crypto.randomUUID)
@@ -64,4 +65,6 @@ export const DEFAULT_SETTINGS = {
   weekStart: 0,         // 0=日曜, 1=月曜
   defaultView: 'month', // 'month' | 'week' | 'day' | 'agenda'
   dayStartHour: 7,      // 週・日表示を開いたときの初期スクロール位置
+  defaultCalendarId: 'default',
+  backupReminderDays: 7, // 0 でお知らせしない
 };

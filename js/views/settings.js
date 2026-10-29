@@ -5,11 +5,15 @@ import { h, clear } from '../ui/dom.js';
 import { toast } from '../ui/toast.js';
 import { confirmDialog } from '../ui/sheet.js';
 import { applyTheme } from '../ui/theme.js';
-import { createStorage, KEYS, SCHEMA_VERSION } from '../core/storage.js';
+import { createStorage, KEYS } from '../core/storage.js';
 import { remigrateFromBackup } from '../core/migrate.js';
 import { createStore } from '../core/store.js';
 import { generateWidgetCode } from '../features/widget.js';
 import { checkForUpdate } from '../pwa.js';
+import { exportBackup, lastExportLabel } from '../features/backup.js';
+import { openIcsExport, importIcs } from './ics-io.js';
+import { openCalendarsSheet } from './calendars-sheet.js';
+import { sortedCalendars } from '../features/calendars.js';
 import { VERSION } from '../version.js';
 
 function segmented(options, current, onChange) {
@@ -28,23 +32,6 @@ async function copyText(text) {
     document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove();
   }
   toast('コピーしました');
-}
-
-function exportData() {
-  const { state } = app.store;
-  const data = { app: 'myplanner', schema: SCHEMA_VERSION, exportedAt: new Date().toISOString(),
-    events: state.events, todos: state.todos, trash: state.trash, calendars: state.calendars, memo: state.memo, settings: state.settings };
-  const json = JSON.stringify(data, null, 1);
-  const name = `myplanner-backup-${new Date().toISOString().slice(0, 10)}.json`;
-  const file = new File([json], name, { type: 'application/json' });
-  // iOS のホーム画面アプリでは共有シートから「ファイルに保存」するのが確実
-  if (navigator.canShare?.({ files: [file] })) {
-    navigator.share({ files: [file], title: name }).catch(() => {});
-    return;
-  }
-  const a = h('a', { href: URL.createObjectURL(file), download: name });
-  document.body.appendChild(a); a.click(); a.remove();
-  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
 }
 
 function importData() {
@@ -92,12 +79,23 @@ export function mountSettings(page) {
           segmented([['month', '月'], ['week', '週'], ['day', '日'], ['agenda', 'リスト']], s.defaultView, v => app.store.setSettings({ defaultView: v })))),
 
       h('section.card',
+        h('div.section-label', 'カレンダー'),
+        h('button.setting-row.link', { onclick: openCalendarsSheet },
+          h('span', 'カレンダーの管理'), h('span.muted', `${sortedCalendars().length}個 ›`)),
+        h('div.setting-row', h('span', '予定の読み込み・書き出し（.ics）'),
+          h('div.btn-row.tight', h('button.pill-btn', { onclick: importIcs }, '読み込む'), h('button.pill-btn', { onclick: openIcsExport }, '書き出す'))),
+        h('p.note', 'Googleカレンダーの「設定 → インポート/エクスポート」や、他のアプリの .ics ファイルとやり取りできます。')),
+
+      h('section.card',
         h('div.section-label', 'データ'),
-        h('p.note', 'データはこの端末のこのアプリの中だけに保存されています。ホーム画面のアイコンを削除するとデータも消えるので、定期的にバックアップしてください。'),
+        h('p.note', 'データはこの端末のこのアプリの中だけに保存されています。ホーム画面のアイコンを削除するとデータも消えるので、定期的にバックアップしてください。iCloud Drive に保存するのがおすすめです。'),
         h('div.btn-col',
-          h('button.btn', { onclick: exportData }, 'バックアップを書き出す'),
+          h('button.btn', { onclick: () => exportBackup().then(ok => ok && render()) }, 'バックアップを書き出す'),
           h('button.btn.secondary', { onclick: importData }, 'バックアップから復元'),
           h('button.btn.secondary', { onclick: remigrate }, '旧データ（v1）から移行し直す')),
+        h('div.setting-row', h('span', 'バックアップのお知らせ'),
+          segmented([[7, '7日ごと'], [14, '14日ごと'], [0, 'オフ']], s.backupReminderDays ?? 7, v => app.store.setSettings({ backupReminderDays: v }))),
+        h('p.note.muted', lastExportLabel()),
         report && (report.events || report.todos || report.trash) > 0 && h('p.note', `前回の移行: 予定 ${report.events}件・Todo ${report.todos}件・削除済み ${report.trash}件`
           + (report.skipped?.length ? `・変換できなかったもの ${report.skipped.length}件（原本はバックアップに保存済み）` : '')
           + (report.warnings?.length ? `・注意 ${report.warnings.length}件` : ''))),
@@ -120,5 +118,5 @@ export function mountSettings(page) {
         h('button.btn.secondary.wide', { onclick: async () => { toast('確認しています…'); const r = await checkForUpdate(); if (!r) toast('最新版です'); } }, '更新を確認')),
     );
   }
-  return { render, onStoreChange(changed) { if (changed.has('settings')) render(); } };
+  return { render, onStoreChange(changed) { if (changed.has('settings') || changed.has('calendars')) render(); } };
 }

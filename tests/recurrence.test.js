@@ -54,3 +54,22 @@ test('繰り返しの各回に時刻が付く', () => {
   assert.equal(occ[0].end, '2026-10-08T17:00');
   assert.equal(occ[0].key, 'w@2026-10-08');
 });
+
+test('毎月 第N曜日・最終曜日', () => {
+  // 2026-11 の第2火曜は 11/10、最終金曜は 11/27
+  assert.deepEqual(expandDates('2026-10-13', { freq: 'MONTHLY', byDay: ['2TU'] }, '2026-10-01', '2027-01-01'),
+    ['2026-10-13', '2026-11-10', '2026-12-08']);
+  assert.deepEqual(expandDates('2026-10-30', { freq: 'MONTHLY', byDay: ['-1FR'] }, '2026-11-01', '2027-01-01'),
+    ['2026-11-27', '2026-12-25']);
+  // 第5木曜がない月は飛ばす
+  assert.deepEqual(expandDates('2026-10-29', { freq: 'MONTHLY', byDay: ['5TH'] }, '2026-10-01', '2027-03-01'),
+    ['2026-10-29', '2026-12-31']);
+  assert.deepEqual(expandDates('2026-10-13', { freq: 'MONTHLY', byDay: ['2TU'], count: 2 }, '2026-01-01', '2027-12-01'),
+    ['2026-10-13', '2026-11-10']);
+});
+
+test('繰り返しの説明文', async () => {
+  const { describeRRule } = await import('../js/core/recurrence.js');
+  assert.equal(describeRRule({ freq: 'MONTHLY', byDay: ['2TU'] }), '毎月 第2火曜');
+  assert.equal(describeRRule({ freq: 'WEEKLY', interval: 2, byDay: ['MO', 'TH'], until: '2027-03-31' }), '2週ごと 月・木（2027-03-31まで）');
+});

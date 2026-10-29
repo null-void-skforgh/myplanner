@@ -8,6 +8,7 @@ import { fmtJP, fmtTime, addDays, dtDate } from '../core/date.js';
 import { describeRRule } from '../core/recurrence.js';
 import { addEvent } from './calendar/actions.js';
 import { addTodo } from '../features/todo-actions.js';
+import { defaultCalendarId } from '../features/calendars.js';
 
 const EXAMPLES = ['明日15時 歯医者', '金曜 18-20時 飲み会', '来週月曜 終日 出張', '毎週火曜 10時 ゼミ', '11/3〜11/5 旅行'];
 
@@ -49,7 +50,7 @@ export function openQuickAdd({ baseDate, mode = 'event' } = {}) {
     if (kind === 'todo') {
       addTodo({ text: r.title || input.value.trim(), due: r.hasDate ? dtDate(r.start) : null, start: r.hasTime ? r.start.slice(11) : null });
     } else {
-      addEvent({ title: r.title, allDay: r.allDay, start: r.start, end: r.end, rrule: r.rrule, color: 0 });
+      addEvent({ title: r.title, allDay: r.allDay, start: r.start, end: r.end, rrule: r.rrule, color: null, calendarId: defaultCalendarId() });
       const d = dtDate(r.start);
       if (d !== app.router.state.date && app.router.state.page === 'cal') app.router.go({ date: d });
     }

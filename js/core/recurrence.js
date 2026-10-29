@@ -53,10 +53,21 @@ export function expandDates(baseKey, rrule, fromKey, toKey, exdates = []) {
     }
     case 'MONTHLY': {
       const { y: fy, m: fm } = parts(fromKey);
+      const nth = (rrule.byDay || []).map(parseByDay).filter(x => x && x.ord);
       let k = skipTo ?? Math.max(0, Math.floor(((fy - by) * 12 + (fm - bm) - 1) / interval));
-      for (let i = 0; i < MAX_ITER; i++, k++) {
+      outerM: for (let i = 0; i < MAX_ITER; i++, k++) {
         const total = by * 12 + (bm - 1) + k * interval;
         const y = Math.floor(total / 12), m = total % 12 + 1;
+        if (nth.length) {
+          // 「第2火曜」「最終金曜」など
+          const keys = nth.map(x => nthWeekday(y, m, x.ord, x.wd)).filter(Boolean).sort();
+          if (!keys.length && makeKey(y, m, 1) >= toKey) break;
+          for (const key of keys) {
+            if (key < baseKey) continue;
+            if (!emit(key)) break outerM;
+          }
+          continue;
+        }
         if (bd > daysInMonth(y, m)) { if (makeKey(y, m, 1) >= toKey) break; continue; }
         if (!emit(makeKey(y, m, bd))) break;
       }
@@ -75,6 +86,33 @@ export function expandDates(baseKey, rrule, fromKey, toKey, exdates = []) {
       if (baseKey >= fromKey && baseKey < toKey) out.push(baseKey);
   }
   return out;
+}
+
+/** 'TU' → {ord:0, wd:2}、'2TU' → {ord:2, wd:2}、'-1FR' → {ord:-1, wd:5} */
+export function parseByDay(str) {
+  const m = String(str).match(/^([+-]?\d)?(SU|MO|TU|WE|TH|FR|SA)$/);
+  return m ? { ord: m[1] ? +m[1] : 0, wd: WEEKDAYS.indexOf(m[2]) } : null;
+}
+
+/** y年m月の第ord wd曜日（ord<0 は最後から）。存在しなければ null */
+export function nthWeekday(y, m, ord, wd) {
+  const dim = daysInMonth(y, m);
+  if (ord > 0) {
+    const first = dayOfWeek(makeKey(y, m, 1));
+    const d = 1 + ((wd - first + 7) % 7) + (ord - 1) * 7;
+    return d <= dim ? makeKey(y, m, d) : null;
+  }
+  const last = dayOfWeek(makeKey(y, m, dim));
+  const d = dim - ((last - wd + 7) % 7) + (ord + 1) * 7;
+  return d >= 1 ? makeKey(y, m, d) : null;
+}
+
+/** その日が「第何◯曜日」か（5週目は最終として扱う） */
+export function ordinalOf(key) {
+  const { y, m, d } = parts(key);
+  const ord = Math.ceil(d / 7);
+  const isLast = d + 7 > daysInMonth(y, m);
+  return { ord, isLast, wd: WEEKDAYS[dayOfWeek(key)] };
 }
 
 // ── UI 用の簡易プリセット（段階2で詳細設定 UI を追加予定）──
@@ -106,7 +144,14 @@ export function describeRRule(rrule) {
   const iv = rrule.interval || 1;
   let s = { DAILY: iv > 1 ? `${iv}日ごと` : '毎日', WEEKLY: iv > 1 ? `${iv}週ごと` : '毎週',
     MONTHLY: iv > 1 ? `${iv}か月ごと` : '毎月', YEARLY: iv > 1 ? `${iv}年ごと` : '毎年' }[rrule.freq] || '繰り返し';
-  if (rrule.byDay?.length) s += ' ' + rrule.byDay.map(d => JP_DAYS[d]).join('・');
+  if (rrule.byDay?.length) {
+    s += ' ' + rrule.byDay.map(d => {
+      const x = parseByDay(d);
+      if (!x) return '';
+      const name = JP_DAYS[WEEKDAYS[x.wd]];
+      return x.ord > 0 ? `第${x.ord}${name}曜` : x.ord < 0 ? `最終${name}曜` : name;
+    }).join('・');
+  }
   if (rrule.until) s += `（${rrule.until}まで）`;
   if (rrule.count) s += `（${rrule.count}回）`;
   return s;

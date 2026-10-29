@@ -4,7 +4,7 @@
   "type": "module",
   "description": "マイプランナー（GitHub Pages で配信する PWA。ビルド不要）",
   "scripts": {
-    "test": "node --test tests/*.test.js",
+    "test": "TZ=Asia/Tokyo node --test tests/*.test.js",
     "serve": "python3 -m http.server 8080",
     "bump": "node tools/bump-version.mjs"
   }

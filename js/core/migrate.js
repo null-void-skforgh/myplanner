@@ -2,7 +2,7 @@
 // 旧キーは一切変更・削除しない。原本は mp2:backup:v1 にもそのままコピーする。
 
 import { normalizeKey, timeToMin, makeDT, addDays } from './date.js';
-import { newEvent, newTodo, DEFAULT_CALENDARS, DEFAULT_SETTINGS, COLOR_COUNT } from './model.js';
+import { newEvent, newTodo, DEFAULT_CALENDARS, DEFAULT_SETTINGS } from './model.js';
 import { KEYS, LEGACY_KEYS, SCHEMA_VERSION } from './storage.js';
 
 const REPEAT_MAP = { daily: 'DAILY', weekly: 'WEEKLY', monthly: 'MONTHLY' };
@@ -29,7 +29,7 @@ export function convertLegacyEvent(dateKey, item, now) {
     // 終了 < 開始 は日またぎとみなす。同時刻は 1時間に。
     end = makeDT(dateKey, eMin > sMin ? eMin : eMin < sMin ? eMin + 1440 : sMin + DEFAULT_DURATION);
   }
-  const color = Number.isInteger(item.color) && item.color >= 0 && item.color < COLOR_COUNT ? item.color : 1;
+  const color = Number.isInteger(item.color) && item.color >= 0 && item.color < 6 ? item.color : 1; // v1 は6色
   const freq = REPEAT_MAP[item.repeat];
   const created = typeof item.id === 'number' && item.id > 1e12 ? item.id : now;
   return newEvent({

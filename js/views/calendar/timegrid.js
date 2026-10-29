@@ -102,6 +102,7 @@ function renderBlock(b, day) {
   return h(`div.tev.c${it.color}` + (short ? '.short' : '') + (b.cols > 1 ? '.split' : ''), { style, dataset: { key: it.key, day } },
     h('div.tev-title', it.title),
     h('div.tev-time', `${fmtTime(occ.start)}〜${fmtTime(occ.end)}`),
+    !short && occ.event.location && h('div.tev-loc', occ.event.location),
     endsHere && h('div.tev-handle', { 'aria-label': '長さを変更' }));
 }
 

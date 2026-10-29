@@ -39,3 +39,5 @@
 .drag-ghost { z-index: 1000; pointer-events: none; opacity: .92; box-shadow: var(--shadow); transition: none; }
 .drag-source { opacity: .3; }
 .is-dragging { cursor: grabbing; }
+.cal-header-row .icon-btn { width: 34px; }
+.cal-header-row .pill-btn { margin-right: 2px; }

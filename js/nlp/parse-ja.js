@@ -2,7 +2,7 @@
 // UI に依存しない純粋関数。
 
 import { addDays, addMonths, dayOfWeek, makeKey, normalizeKey, parts, daysInMonth, makeDT, todayKey, diffDays } from '../core/date.js';
-import { WEEKDAYS } from '../core/recurrence.js';
+import { WEEKDAYS, nthWeekday } from '../core/recurrence.js';
 
 const WD = { 日: 0, 月: 1, 火: 2, 水: 3, 木: 4, 金: 5, 土: 6 };
 const WD_RE = '([日月火水木金土])曜日?';
@@ -71,6 +71,15 @@ export function parseJa(input, ctx = {}) {
     rrule = { freq: 'WEEKLY', interval: m[1] === '隔週' ? 2 : 1 };
     if (m[2]) { rrule.byDay = [WEEKDAYS[WD[m[2]]]]; date = nextWeekday(today, WD[m[2]]); }
   });
+  take(/毎月の?(?:第(\d)|(最終|最後の))([日月火水木金土])曜日?/, m => {
+    const ord = m[1] ? +m[1] : -1, wd = WD[m[3]];
+    rrule = { freq: 'MONTHLY', interval: 1, byDay: [(ord > 0 ? ord : '-1') + WEEKDAYS[wd]] };
+    for (let i = 0; i < 13 && !date; i++) {
+      const k = addMonths(makeKey(ty, tm, 1), i);
+      const d = nthWeekday(+k.slice(0, 4), +k.slice(5, 7), ord, wd);
+      if (d && d >= today) date = d;
+    }
+  }) ||
   take(/毎月(?:(\d{1,2})日)?/, m => {
     rrule = { freq: 'MONTHLY', interval: 1 };
     if (m[1]) {

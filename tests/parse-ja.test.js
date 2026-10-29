@@ -47,3 +47,13 @@ test('タイトル中の語を壊さない', () => {
   assert.equal(p('三井さんと 明日 ランチ').title, '三井さんと ランチ');
   assert.equal(p('月曜会議の準備').title.includes('会議の準備'), true);
 });
+
+test('毎月 第N曜日・最終曜日', () => {
+  const a = p('毎月第2火曜 19時 定例会');
+  assert.deepEqual(a.rrule, { freq: 'MONTHLY', interval: 1, byDay: ['2TU'] });
+  assert.equal(a.start, '2026-11-10T19:00');
+  assert.equal(a.title, '定例会');
+  const b = p('毎月最終金曜 飲み会');
+  assert.deepEqual(b.rrule.byDay, ['-1FR']);
+  assert.equal(b.start, '2026-10-30');
+});

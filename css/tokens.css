@@ -17,6 +17,10 @@
   --c3: #4caf7d; --c3-bg: #e2f4ea; --c3-ink: #26744b;
   --c4: #E8923A; --c4-bg: #fdeedd; --c4-ink: #9a560f;
   --c5: #8e6bbf; --c5-bg: #efe9f8; --c5-ink: #5e3d8f;
+  --c6: #4a7fd4; --c6-bg: #e3ecfa; --c6-ink: #2a5aa6;
+  --c7: #d94a4a; --c7-bg: #fbe5e5; --c7-ink: #a12a2a;
+  --c8: #b59b1c; --c8-bg: #f6f0d6; --c8-ink: #7a670b;
+  --c9: #7d7c8a; --c9-bg: #ececf0; --c9-ink: #4e4d5a;
 
   --radius: 14px; --radius-sm: 10px;
   --safe-top: env(safe-area-inset-top, 0px); --safe-bottom: env(safe-area-inset-bottom, 0px);
@@ -41,6 +45,10 @@
     --c3-bg: #1a3b2a; --c3-ink: #9fe3bd;
     --c4-bg: #43301a; --c4-ink: #f7c690;
     --c5-bg: #33284d; --c5-ink: #d4bdf3;
+    --c6-bg: #1d2c47; --c6-ink: #a6c4f5;
+    --c7-bg: #45201f; --c7-ink: #f5a6a6;
+    --c8-bg: #3a3415; --c8-ink: #e8d78a;
+    --c9-bg: #2c2c35; --c9-ink: #c6c5d2;
   }
 }
 :root[data-theme="dark"] {
@@ -60,6 +68,10 @@
   --c3-bg: #1a3b2a; --c3-ink: #9fe3bd;
   --c4-bg: #43301a; --c4-ink: #f7c690;
   --c5-bg: #33284d; --c5-ink: #d4bdf3;
+  --c6-bg: #1d2c47; --c6-ink: #a6c4f5;
+  --c7-bg: #45201f; --c7-ink: #f5a6a6;
+  --c8-bg: #3a3415; --c8-ink: #e8d78a;
+  --c9-bg: #2c2c35; --c9-ink: #c6c5d2;
 }
 
 /* 予定の色クラス（.c0〜.c5）。段階2でカレンダーごとの色を追加するときもこの仕組みを使う */
@@ -69,3 +81,7 @@
 .c3 { --ev: var(--c3); --ev-bg: var(--c3-bg); --ev-ink: var(--c3-ink); }
 .c4 { --ev: var(--c4); --ev-bg: var(--c4-bg); --ev-ink: var(--c4-ink); }
 .c5 { --ev: var(--c5); --ev-bg: var(--c5-bg); --ev-ink: var(--c5-ink); }
+.c6 { --ev: var(--c6); --ev-bg: var(--c6-bg); --ev-ink: var(--c6-ink); }
+.c7 { --ev: var(--c7); --ev-bg: var(--c7-bg); --ev-ink: var(--c7-ink); }
+.c8 { --ev: var(--c8); --ev-bg: var(--c8-bg); --ev-ink: var(--c8-ink); }
+.c9 { --ev: var(--c9); --ev-bg: var(--c9-bg); --ev-ink: var(--c9-ink); }

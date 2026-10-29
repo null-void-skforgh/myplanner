@@ -43,3 +43,4 @@
 .tev.ghost { opacity: .85; border-left-style: dashed; z-index: 30; }
 .tg-now { position: absolute; left: -1px; right: 0; height: 2px; background: var(--red); z-index: 10; pointer-events: none; }
 .tg-now::before { content: ""; position: absolute; left: -5px; top: -4px; width: 10px; height: 10px; border-radius: 50%; background: var(--red); }
+.tev-loc { font-size: 10.5px; opacity: .8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

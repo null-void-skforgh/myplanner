@@ -7,6 +7,7 @@ import { addDays, addMonths, todayKey, fmtYM, fmtJP, startOfWeek, parts } from '
 import { renderMonth } from './month.js';
 import { renderTimeGrid } from './timegrid.js';
 import { renderAgenda } from './agenda.js';
+import { openCalendarsSheet } from '../calendars-sheet.js';
 
 const VIEW_LABELS = [['month', '月'], ['week', '週'], ['day', '日'], ['agenda', 'リスト']];
 
@@ -22,6 +23,7 @@ export function mountCalendar(page) {
       h('button.icon-btn', { 'aria-label': '次へ', onclick: () => step(1) }, icon('right')),
       h('div.spacer'),
       h('button.pill-btn', { onclick: () => app.router.go({ date: todayKey() }) }, '今日'),
+      h('button.icon-btn', { 'aria-label': 'カレンダー', onclick: openCalendarsSheet }, icon('layers')),
       h('button.icon-btn', { 'aria-label': '検索', onclick: () => app.openSearch() }, icon('search')),
       undoBtn),
     seg);
