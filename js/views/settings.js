@@ -9,6 +9,7 @@ import { createStorage, KEYS } from '../core/storage.js';
 import { remigrateFromBackup } from '../core/migrate.js';
 import { createStore } from '../core/store.js';
 import { generateWidgetCode } from '../features/widget.js';
+import { arrangeTodos, dueLabel, isOverdue, WIDGET_ROWS } from '../features/todo-actions.js';
 import { checkForUpdate } from '../pwa.js';
 import { exportBackup, lastExportLabel } from '../features/backup.js';
 import { openIcsExport, importIcs } from './ics-io.js';
@@ -61,6 +62,19 @@ async function remigrate() {
   toast(`移行しました（予定 ${report.events}件・Todo ${report.todos}件）`);
 }
 
+/** ウィジェットの見た目のプレビュー（ミディアムサイズ） */
+function widgetPreview() {
+  const a = arrangeTodos(app.store.todoList(), WIDGET_ROWS);
+  return h('div.wp', { 'aria-label': 'ウィジェットのプレビュー' },
+    h('div.wp-head', h('span.wp-title', '📋 Todo'), h('span.wp-count', `${a.active.length}件`)),
+    a.rows.map(t => h('div.wp-row' + (t.important ? '.imp' : ''),
+      h('span.wp-mark', t.important ? '★' : isOverdue(t.due) ? '‼' : '○'),
+      h('span.wp-text', t.text),
+      h('span.wp-due', dueLabel(t.due, t.start).replace(/まで$/, '')))),
+    a.hidden > 0 && h('div.wp-more', `他 ${a.hidden} 件`),
+    !a.active.length && h('div.wp-more', '✅ すべて完了！'));
+}
+
 export function mountSettings(page) {
   const body = h('div.page-scroll');
   clear(page, h('header.app-header', h('div.page-title', '設定')), body);
@@ -102,7 +116,9 @@ export function mountSettings(page) {
 
       h('section.card',
         h('div.section-label', '📱 ホーム画面ウィジェット（Scriptable）'),
-        h('p.note', 'Todo画面の「ウィジェットに同期」で、未完了のTodoをウィジェットに送れます。初回だけ下の手順でセットアップしてください。'),
+        widgetPreview(),
+        h('p.note', 'Todo画面の「ウィジェットに同期」で、未完了のTodoをウィジェットに送れます。★だいじなTodoは常に先頭に、残りは期限が早い順に表示されます。初回だけ下の手順でセットアップしてください。'),
+        h('p.note', '⚠️ 2.3.0 でウィジェットのコードが新しくなりました。★を表示するには「コードをコピー」してScriptableのスクリプトに貼り直してください（1回だけ）。'),
         h('div.btn-row',
           h('button.btn', { onclick: () => copyText(generateWidgetCode(app.store.todoList(), false)) }, 'コードをコピー'),
           h('button.btn.secondary', { onclick: () => copyText(generateWidgetCode(app.store.todoList(), true)) }, 'Todoデータも含める')),
@@ -118,5 +134,5 @@ export function mountSettings(page) {
         h('button.btn.secondary.wide', { onclick: async () => { toast('確認しています…'); const r = await checkForUpdate(); if (!r) toast('最新版です'); } }, '更新を確認')),
     );
   }
-  return { render, onStoreChange(changed) { if (changed.has('settings') || changed.has('calendars')) render(); } };
+  return { render, onStoreChange(changed) { if (changed.has('settings') || changed.has('calendars') || changed.has('todos')) render(); } };
 }

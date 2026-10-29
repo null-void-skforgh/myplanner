@@ -53,3 +53,26 @@
 .review-head { display: flex; align-items: center; }
 .review-label { font-weight: 700; font-size: 15px; }
 .review-text { white-space: pre-wrap; font-family: inherit; font-size: 14px; line-height: 1.7; color: var(--text2); margin-top: 6px; }
+
+/* ★ だいじ */
+.icon-btn.star { color: var(--text3); width: 34px; height: 34px; }
+.icon-btn.star .icon { width: 19px; height: 19px; }
+.icon-btn.star.on { color: #e3a91c; }
+.icon-btn.star.on .icon { fill: #f2c14e; }
+.star-label { color: #c58a00; }
+:root[data-theme="dark"] .star-label { color: #f2c14e; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .star-label { color: #f2c14e; } }
+.more-btn { display: block; width: 100%; margin-top: 8px; padding: 10px; border-radius: var(--radius-sm); background: var(--surface); border: 0.5px dashed var(--border-strong); color: var(--accent-ink); font-weight: 600; font-size: 14px; }
+
+/* ウィジェットのプレビュー */
+.wp { background: #1a1830; color: #f0eff9; border-radius: 20px; padding: 14px 16px 12px; margin: 6px 0 10px; font-size: 13px; }
+.wp-head { display: flex; justify-content: space-between; margin-bottom: 8px; }
+.wp-title { color: #9f97f0; font-weight: 700; font-size: 14px; }
+.wp-count { color: #6b6a80; font-size: 12px; }
+.wp-row { display: flex; align-items: center; gap: 6px; padding: 2px 0; }
+.wp-mark { color: #9f97f0; width: 14px; text-align: center; }
+.wp-row.imp .wp-mark { color: #F2C14E; }
+.wp-row.imp .wp-text { font-weight: 700; }
+.wp-text { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wp-due { color: #8f8ea6; font-size: 11px; flex-shrink: 0; }
+.wp-more { color: #8f8ea6; font-size: 11px; margin-top: 4px; }

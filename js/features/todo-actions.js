@@ -49,6 +49,35 @@ export function purgeTodo(id) {
   if (t) app.store.transact(`「${t.text}」を完全に削除しました`, tx => tx.remove('trash', id));
 }
 
+export function toggleImportant(id) {
+  const t = app.store.state.todos[id];
+  if (!t) return;
+  updateTodo(id, { important: !t.important }, t.important ? `「${t.text}」の★を外しました` : `「${t.text}」を★だいじにしました（ウィジェットに常に表示）`);
+}
+
+/** ウィジェットの行数（ミディアムサイズ）。Todo 画面でも同じ件数まで表示して残りは「他N件」 */
+export const WIDGET_ROWS = 5;
+
+/**
+ * ★だいじ → 期限が早い順（期限なしは最後）に並べ、max 件を超えた分を hidden に数える。
+ * Scriptable 側の arrange()（features/widget.js の SHARED_SOURCE）と同じ結果になる。
+ */
+export function arrangeTodos(todos, max = WIDGET_ROWS) {
+  const active = todos.filter(t => !t.done);
+  const imp = active.filter(t => t.important).sort(compareDueStable);
+  const rest = active.filter(t => !t.important).sort(compareDueStable);
+  const shownImp = imp.slice(0, max);
+  const shownRest = rest.slice(0, Math.max(0, max - shownImp.length));
+  return { active, imp, rest, rows: [...shownImp, ...shownRest], hidden: active.length - shownImp.length - shownRest.length };
+}
+const compareDueStable = (a, b) => {
+  if (!a.due && !b.due) return 0;
+  if (!a.due) return 1;
+  if (!b.due) return -1;
+  if (a.due !== b.due) return a.due < b.due ? -1 : 1;
+  return (a.start || '99:99').localeCompare(b.start || '99:99');
+};
+
 // ── 表示用 ──
 export function compareDue(a, b) {
   if (!a.due && !b.due) return (b.createdAt || 0) - (a.createdAt || 0);

@@ -52,6 +52,7 @@ export function newTodo(p = {}, now = Date.now()) {
     createdAt: p.createdAt ?? now,
     updatedAt: p.updatedAt ?? now,
     completedAt: p.completedAt ?? null,
+    important: !!p.important,       // ★ だいじ（ウィジェットに常に表示）
     ...(p.archivedAuto ? { archivedAuto: true } : {}),
   };
 }

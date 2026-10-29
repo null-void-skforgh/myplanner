@@ -14,9 +14,10 @@ export function openTodoEditor(target) {
   const start = h('input.input', { type: 'time', step: 300, value: t.start || '' });
   const end = h('input.input', { type: 'time', step: 300, value: t.end || '' });
   const clearDue = h('button.pill-btn', { onclick: () => { due.value = ''; start.value = ''; end.value = ''; } }, '期限なし');
+  const important = h('input', { type: 'checkbox', checked: !!t.important });
 
   const save = () => {
-    const fields = { text: text.value.trim(), due: due.value || null, start: start.value || null, end: end.value || null };
+    const fields = { text: text.value.trim(), due: due.value || null, start: start.value || null, end: end.value || null, important: important.checked };
     if (!fields.text) { text.focus(); return; }
     if (isNew) addTodo(fields);
     else updateTodo(t.id, fields, `「${fields.text}」を保存しました`);
@@ -31,6 +32,7 @@ export function openTodoEditor(target) {
       h('div.field', text),
       h('div.field.row', h('span.field-label', '期限'), h('div.dt', due, clearDue)),
       h('div.field.row', h('span.field-label', '時刻'), h('div.dt', start, h('span.dt-sep', '〜'), end)),
+      h('label.field.row', h('span.field-label', '★ だいじ（ウィジェットに常に表示）'), h('span.switch', important, h('span.switch-ui'))),
       !isNew && h('div.btn-row',
         h('button.btn.secondary', { onclick: () => { toggleTodo(t.id); sheet.close(); } }, app.store.state.todos[t.id]?.done ? '未完了に戻す' : '完了にする'),
         h('button.btn.danger', { onclick: () => { trashTodo(t.id); sheet.close(); } }, '削除'))),
