@@ -9,6 +9,7 @@ import { describeRRule } from '../core/recurrence.js';
 import { addEvent } from './calendar/actions.js';
 import { addTodo } from '../features/todo-actions.js';
 import { defaultCalendarId } from '../features/calendars.js';
+import { openClassAdd } from './class-add.js';
 
 const EXAMPLES = ['明日15時 歯医者', '金曜 18-20時 飲み会', '来週月曜 終日 出張', '毎週火曜 10時 ゼミ', '11/3〜11/5 旅行'];
 
@@ -70,7 +71,8 @@ export function openQuickAdd({ baseDate, mode = 'event', text = '' } = {}) {
   const sheet = openSheet({
     title: 'すばやく追加',
     headerRight: h('button.pill-btn.primary', { onclick: submit }, '追加'),
-    content: h('div.form', seg, input, preview, h('button.btn.secondary.wide', { onclick: details }, '詳細を入力して追加…')),
+    content: h('div.form', h('div.quick-head', seg,
+      h('button.pill-btn', { onclick: () => { sheet.close(); openClassAdd({ baseDate }); } }, '📚 授業')), input, preview, h('button.btn.secondary.wide', { onclick: details }, '詳細を入力して追加…')),
   });
   update();
   // iOS はタップ処理の中で同期的に focus しないとキーボードが出ない

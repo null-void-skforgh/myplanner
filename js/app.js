@@ -1,7 +1,7 @@
 // 画面どうしで共有するもの（循環 import を避けるため、実体は main.js で入れる）
 //   app.store   : core/store.js
 //   app.router  : ui/router.js
-//   app.openEventEditor(occOrDraft) / app.openQuickAdd(opts) / app.openTodoEditor(todo) / app.openSearch()
+//   app.openEventEditor(occOrDraft) / app.openQuickAdd(opts) / app.openTodoEditor(todo) / app.openSearch() / app.openClassAdd(opts)
 
 export const app = {
   store: null,
@@ -10,6 +10,7 @@ export const app = {
   openQuickAdd: null,
   openTodoEditor: null,
   openSearch: null,
+  openClassAdd: null,
 };
 
 /** 予定の色番号（予定 → カレンダー → 0 の順） */

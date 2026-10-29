@@ -149,3 +149,17 @@ select.input { width: auto; padding-right: 28px; background-image: linear-gradie
 .backup-text b { color: var(--text); font-size: 15px; }
 .backup-actions { display: flex; gap: 8px; }
 .backup-actions .btn { flex: 1; padding: 10px; }
+
+/* 授業の追加 */
+.period-picker { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+.period-btn { display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 8px 2px; border-radius: var(--radius-sm); background: var(--surface2); }
+.period-no { font-weight: 700; font-size: 14px; }
+.period-time { font-size: 11px; color: var(--text3); }
+.period-btn[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); }
+.period-btn[aria-pressed="true"] .period-time { color: var(--on-accent); opacity: .85; }
+.weeks-num { min-width: 44px; text-align: center; font-weight: 700; font-size: 15px; }
+.pill-btn:disabled { opacity: .4; }
+.quick-head { display: flex; gap: 8px; align-items: center; }
+.quick-head .segmented { flex: 1; }
+.period-times { display: grid; grid-template-columns: auto 1fr auto 1fr; gap: 6px 6px; align-items: center; margin: 4px 0 8px; }
+.period-times .input { padding: 6px 6px; font-size: 14px; }

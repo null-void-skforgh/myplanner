@@ -15,6 +15,7 @@ import { exportBackup, lastExportLabel } from '../features/backup.js';
 import { openIcsExport, importIcs } from './ics-io.js';
 import { openCalendarsSheet } from './calendars-sheet.js';
 import { sortedCalendars } from '../features/calendars.js';
+import { periodsOf, DEFAULT_PERIODS } from '../features/classes.js';
 import { VERSION } from '../version.js';
 
 function segmented(options, current, onChange) {
@@ -75,6 +76,27 @@ function widgetPreview() {
     !a.active.length && h('div.wp-more', '✅ すべて完了！'));
 }
 
+/** 授業の時間割（各時限の開始・終了時刻） */
+function classPeriodsCard(s) {
+  const periods = periodsOf(s).map(p => [...p]);
+  const set = (i, j, val) => {
+    if (!val) return;
+    periods[i][j] = val;
+    app.store.setSettings({ classPeriods: periods.map(p => [...p]) });
+  };
+  const isDefault = JSON.stringify(periods) === JSON.stringify(DEFAULT_PERIODS);
+  return h('section.card',
+    h('div.section-label', '📚 授業の時間割'),
+    h('div.period-times', periods.map(([st, en], i) => [
+      h('span', `${i + 1}限`),
+      h('input.input', { type: 'time', value: st, onchange: e => set(i, 0, e.target.value) }),
+      h('span.muted', '〜'),
+      h('input.input', { type: 'time', value: en, onchange: e => set(i, 1, e.target.value) }),
+    ])),
+    h('p.note', 'カレンダーの「＋」→「📚 授業」で使う時刻です。変えても、登録済みの授業の時刻は変わりません。'),
+    !isDefault && h('button.btn.secondary.wide', { onclick: () => app.store.setSettings({ classPeriods: DEFAULT_PERIODS.map(p => [...p]) }) }, '東大の時刻（105分）に戻す'));
+}
+
 export function mountSettings(page) {
   const body = h('div.page-scroll');
   clear(page, h('header.app-header', h('div.page-title', '設定')), body);
@@ -99,6 +121,8 @@ export function mountSettings(page) {
         h('div.setting-row', h('span', '予定の読み込み・書き出し（.ics）'),
           h('div.btn-row.tight', h('button.pill-btn', { onclick: importIcs }, '読み込む'), h('button.pill-btn', { onclick: openIcsExport }, '書き出す'))),
         h('p.note', 'Googleカレンダーの「設定 → インポート/エクスポート」や、他のアプリの .ics ファイルとやり取りできます。')),
+
+      classPeriodsCard(s),
 
       h('section.card',
         h('div.section-label', 'データ'),

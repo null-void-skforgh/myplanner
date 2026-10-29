@@ -15,6 +15,7 @@ import { mountMemo } from './views/memo.js';
 import { mountSettings } from './views/settings.js';
 import { openEventEditor } from './views/event-editor.js';
 import { openQuickAdd } from './views/quick-add.js';
+import { openClassAdd } from './views/class-add.js';
 import { openTodoEditor } from './views/todo-editor.js';
 import { openSearch } from './views/search.js';
 import { autoArchive, weeklyReport } from './features/startup-tasks.js';
@@ -34,7 +35,7 @@ function boot() {
 
   const router = createRouter({ view: store.state.settings.defaultView, date: todayKey() });
   app.router = router;
-  Object.assign(app, { openEventEditor, openQuickAdd, openTodoEditor, openSearch });
+  Object.assign(app, { openEventEditor, openQuickAdd, openTodoEditor, openSearch, openClassAdd });
 
   // ── 画面 ──
   const pages = {
