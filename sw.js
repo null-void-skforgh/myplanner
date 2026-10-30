@@ -97,7 +97,8 @@ self.addEventListener('fetch', event => {
   event.respondWith((async () => {
     const cache = await caches.open(CACHE);
     // 画面遷移は常にキャッシュ済みの index.html（ハッシュで画面を切り替えるため）
-    if (req.mode === 'navigate') return (await cache.match('index.html')) || fetch(req);
+    // （privacy.html などアプリ以外のページはそのまま取りに行く）
+    if (req.mode === 'navigate' && !/\/(?!index)[^/]+\.html$/.test(new URL(req.url).pathname)) return (await cache.match('index.html')) || fetch(req);
     const hit = await cache.match(req, { ignoreSearch: true });
     if (hit) return hit;
     try { return await fetch(req); } catch { return new Response('', { status: 504 }); }
