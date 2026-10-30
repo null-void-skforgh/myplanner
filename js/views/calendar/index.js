@@ -3,7 +3,7 @@
 import { app } from '../../app.js';
 import { h, clear, icon } from '../../ui/dom.js';
 import { attachSwipe, isDragging } from '../../ui/gesture.js';
-import { addDays, addMonths, todayKey, fmtYM, fmtJP, startOfWeek, parts } from '../../core/date.js';
+import { addDays, addMonths, todayKey, fmtYM, fmtJP, startOfWeek, startOfMonth, parts } from '../../core/date.js';
 import { renderMonth } from './month.js';
 import { renderTimeGrid } from './timegrid.js';
 import { renderAgenda } from './agenda.js';
@@ -31,12 +31,22 @@ export function mountCalendar(page) {
   const fab = h('button.fab', { 'aria-label': '予定を追加', onclick: () => app.openQuickAdd({ baseDate: app.router.state.date }) }, icon('plus'));
   clear(page, header, body, fab);
 
+  // リスト表示で今見出しに出ている月（スクロールで変わる）
+  let agendaShown = null;
+
   function step(dir) {
     const { view, date } = app.router.state;
-    const next = view === 'month' ? addMonths(date, dir)
-      : view === 'week' ? addDays(date, 7 * dir)
-      : view === 'day' ? addDays(date, dir)
-      : addMonths(date, dir);
+    let next;
+    if (view === 'agenda') {
+      // 見出しの月の前後の月へ。今月なら今日から、それ以外は1日から
+      const target = addMonths(startOfMonth(agendaShown || date), dir);
+      const today = todayKey();
+      next = target.slice(0, 7) === today.slice(0, 7) ? today : target;
+    } else {
+      next = view === 'month' ? addMonths(date, dir)
+        : view === 'week' ? addDays(date, 7 * dir)
+        : addDays(date, dir);
+    }
     app.router.go({ date: next });
   }
   attachSwipe(body, { onLeft: () => step(1), onRight: () => step(-1) });
@@ -52,7 +62,7 @@ export function mountCalendar(page) {
     body.dataset.view = view;
     const opts = { date, view, weekStart, dayStartHour };
     if (view === 'month') renderMonth(body, opts);
-    else if (view === 'agenda') renderAgenda(body, { ...opts, onMonth: d => { title.textContent = fmtYM(d); } });
+    else if (view === 'agenda') { agendaShown = date; renderAgenda(body, { ...opts, onMonth: d => { agendaShown = d; title.textContent = fmtYM(d); } }); }
     else renderTimeGrid(body, opts);
   }
 

@@ -52,7 +52,8 @@ export function renderAgenda(root, { date, onMonth }) {
     ticking = false;
     const top = scroller.scrollTop + 4;
     let day = date;
-    for (const sec of list.children) {
+    // 一番上にいるときは、選んだ日（の月）のまま
+    if (scroller.scrollTop > 4) for (const sec of list.children) {
       if (!sec.dataset.day) continue;
       if (sec.offsetTop + sec.offsetHeight > top) { day = sec.dataset.day; break; }
       day = sec.dataset.day;
