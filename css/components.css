@@ -184,3 +184,15 @@ select.input { width: auto; padding-right: 28px; background-image: linear-gradie
 .notify-dot.warn { background: #EF9F27; }
 .input.auto { width: auto; }
 .ro-note { background: var(--surface2); padding: 10px 12px; border-radius: var(--radius-sm); }
+
+/* iPhone の Safari では日付欄が「2026年11月3日」と長く表示され、幅が広がって横にはみ出す。
+   日付・時刻欄は画面の幅に合わせて縮め、シートの中は横に動かないようにする */
+.sheet, .sheet-body { overflow-x: hidden; overscroll-behavior-x: none; }
+.sheet-body { touch-action: pan-y; }
+.sheet .field.row > * { min-width: 0; }
+.dt { flex: 0 1 auto; min-width: 0; max-width: calc(100% - 44px); }
+.dt .input { min-width: 0; padding: 8px 8px; }
+.dt input[type="date"] { flex: 1.6 1 0; max-width: 160px; }
+.dt input[type="time"] { flex: 1 1 0; max-width: 100px; min-width: 76px; }
+.input[type="date"], .input[type="time"] { text-align: left; }
+.input::-webkit-date-and-time-value { text-align: left; margin: 0; }
