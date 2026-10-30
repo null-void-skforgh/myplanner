@@ -29,7 +29,10 @@ export async function api(path, { method = 'GET', body, conf = serverConf(), tim
       body: body ? JSON.stringify(body) : undefined,
     });
     const data = await res.json().catch(() => ({}));
-    if (!res.ok) throw Object.assign(new Error(data.error || 'http_' + res.status), { status: res.status, data });
+    if (!res.ok) {
+      const msg = typeof data.error === 'string' ? data.error : data.error?.message || 'http_' + res.status;
+      throw Object.assign(new Error(msg), { status: res.status, data });
+    }
     return data;
   } finally { clearTimeout(timer); }
 }

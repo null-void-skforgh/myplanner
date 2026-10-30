@@ -3,7 +3,7 @@
 import { app } from '../app.js';
 import { h, clear } from '../ui/dom.js';
 import { toast } from '../ui/toast.js';
-import { confirmDialog } from '../ui/sheet.js';
+import { confirmDialog, choose } from '../ui/sheet.js';
 import { applyTheme } from '../ui/theme.js';
 import { createStorage, KEYS } from '../core/storage.js';
 import { remigrateFromBackup } from '../core/migrate.js';
@@ -18,6 +18,8 @@ import { sortedCalendars } from '../features/calendars.js';
 import { periodsOf, DEFAULT_PERIODS } from '../features/classes.js';
 import { isConnected, connect, disconnect, enablePush, status, sendTest, permission, syncSchedule, serverConf } from '../features/server.js';
 import { TIMED_PRESETS, reminderLabel } from '../features/notify.js';
+import { googleStatus, startGoogleAuth, disconnectGoogle, googleCalendars, syncAll, lastSyncAt, onSyncState, isSyncing } from '../integrations/google.js';
+import { openGoogleCalendarPicker } from './google-sheet.js';
 import { VERSION } from '../version.js';
 
 function segmented(options, current, onChange) {
@@ -148,6 +150,69 @@ function notifyCard(s, rerender) {
     } }, `接続を解除（${new URL(serverConf().url).host}）`));
 }
 
+const timeAgo = ms => {
+  if (!ms) return 'まだ同期していません';
+  const min = Math.round((Date.now() - ms) / 60000);
+  return min < 1 ? 'たった今同期しました' : min < 60 ? `${min}分前に同期` : min < 1440 ? `${Math.round(min / 60)}時間前に同期` : `${Math.round(min / 1440)}日前に同期`;
+};
+
+/** Google カレンダー（接続・カレンダーの選択・同期） */
+function googleCard(rerender) {
+  const card = h('section.card', h('div.section-label', '📅 Googleカレンダー'));
+  if (!isConnected()) {
+    card.append(h('p.note', '先に上の「🔔 通知」でサーバーにつないでください。'));
+    return card;
+  }
+  const body = h('div', h('div.notify-status', h('span.notify-dot'), h('span', '確認しています…')));
+  card.append(body);
+  const show = st => {
+    if (!st.connected) {
+      clear(body,
+        h('p.note', 'Googleカレンダーの予定をアプリに取り込み、アプリで追加・変更した予定もGoogleに送ります。'),
+        h('button.btn.wide', { onclick: async () => {
+          try {
+            await startGoogleAuth();
+            // Google の画面から戻ってきたら確かめる
+            const back = async () => {
+              if (document.visibilityState !== 'visible') return;
+              document.removeEventListener('visibilitychange', back);
+              const s2 = await googleStatus().catch(() => null);
+              if (s2?.connected) { toast('Googleと接続しました'); rerender(); if (!googleCalendars().length) openGoogleCalendarPicker(); }
+            };
+            document.addEventListener('visibilitychange', back);
+          } catch (e) { toast(e.message === 'google_not_configured' ? 'サーバーにGoogleの設定がまだありません' : `接続できませんでした（${e.message}）`); }
+        } }, 'Googleと接続'));
+      return;
+    }
+    const cals = googleCalendars();
+    const syncLabel = h('span.muted', isSyncing() ? '同期しています…' : timeAgo(lastSyncAt()));
+    const off = onSyncState(running => { if (!syncLabel.isConnected) { off(); return; } syncLabel.textContent = running ? '同期しています…' : timeAgo(lastSyncAt()); });
+    clear(body,
+      h('div.notify-status', h('span.notify-dot.on'), h('span', st.email ? `${st.email} と接続中` : '接続中')),
+      h('button.setting-row.link', { onclick: openGoogleCalendarPicker },
+        h('span', '同期するカレンダー'), h('span.muted', cals.length ? `${cals.map(c => c.name).join('・')} ›` : '選んでください ›')),
+      h('div.setting-row', syncLabel,
+        h('button.pill-btn', { onclick: async () => {
+          try { const r = await syncAll({ quiet: false }); toast(r ? `同期しました（受信 ${r.pulled}件・送信 ${r.pushed}件）` + (r.errors.length ? `・失敗 ${r.errors.length}件` : '') : '同期するカレンダーがありません'); }
+          catch (e) { toast(`同期できませんでした（${e.message}）`); }
+        } }, '今すぐ同期')),
+      cals.some(c => c.source.lastError) && h('p.note', '⚠️ ' + cals.map(c => c.source.lastError).filter(Boolean)[0]),
+      h('p.note', 'アプリを開いたときと、予定を変えたときに自動で同期します。'),
+      h('button.btn.secondary.wide', { onclick: async () => {
+        const how = await choose('Googleとの接続を解除', [
+          { label: 'アプリから同期中の予定を消す', value: 'remove', danger: true },
+          { label: 'アプリのカレンダーとして残す', value: 'keep' },
+        ], 'Googleカレンダーの予定はどちらでも消えません。');
+        if (!how) return;
+        try { await disconnectGoogle(how === 'remove'); toast('Googleとの接続を解除しました'); rerender(); }
+        catch (e) { toast(errText(e)); }
+      } }, 'Googleとの接続を解除'));
+  };
+  googleStatus().then(show).catch(e => clear(body, h('p.note', e.message === 'google_not_configured'
+    ? 'サーバーにGoogleの設定がまだありません。' : errText(e))));
+  return card;
+}
+
 /** 授業の時間割（各時限の開始・終了時刻） */
 function classPeriodsCard(s) {
   const periods = periodsOf(s).map(p => [...p]);
@@ -195,6 +260,8 @@ export function mountSettings(page) {
         h('p.note', 'Googleカレンダーの「設定 → インポート/エクスポート」や、他のアプリの .ics ファイルとやり取りできます。')),
 
       notifyCard(s, render),
+
+      googleCard(render),
 
       classPeriodsCard(s),
 

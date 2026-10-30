@@ -26,7 +26,7 @@ export function saveOccurrence(tx, occ, patch, scope = 'all') {
   if (scope === 'this') {
     tx.put('events', { ...base, exdates: [...new Set([...(base.exdates || []), occ.occDate])] });
     tx.put('events', newEvent({ ...base, start: occ.start, end: occ.end, ...patch, id: uid('e'), rrule: null, exdates: [],
-      recurringEventId: base.id, createdAt: Date.now() }));
+      recurringEventId: base.id, source: { provider: 'local' }, createdAt: Date.now() }));
     return;
   }
 
@@ -34,7 +34,7 @@ export function saveOccurrence(tx, occ, patch, scope = 'all') {
   const rest = { ...base.rrule }; delete rest.count;
   tx.put('events', { ...base, rrule: { ...base.rrule, until: addDays(occ.occDate, -1), count: undefined } });
   tx.put('events', newEvent({ ...base, start: occ.start, end: occ.end, ...patch, id: uid('e'), rrule: patch.rrule === undefined ? rest : patch.rrule,
-    exdates: (base.exdates || []).filter(d => d >= occ.occDate), createdAt: Date.now() }));
+    exdates: (base.exdates || []).filter(d => d >= occ.occDate), source: { provider: 'local' }, createdAt: Date.now() }));
 }
 
 export function deleteOccurrence(tx, occ, scope = 'all') {

@@ -25,12 +25,26 @@ export function createStore(storage) {
   const persist = colls => { for (const c of colls) storage.set(KEYS[c], state[c]); };
   const notify = (changed, info = {}) => { for (const fn of listeners) fn(changed, info); };
 
+  // Google と同期している予定は、取り消し／やり直しも「未送信の変更」にする（次の同期で Google に反映される）
+  const isSynced = rec => rec?.source?.provider === 'google' && rec.source.externalId;
   function apply(changes, useAfter) {
     const touched = new Set();
+    const now = Date.now();
     for (const ch of changes) {
       const rec = useAfter ? ch.after : ch.before;
-      if (rec == null) delete state[ch.coll][ch.id];
-      else state[ch.coll][ch.id] = structuredClone(rec);
+      const cur = state[ch.coll][ch.id];
+      if (rec == null) {
+        // 作成の取り消しでも、Google に送り済みなら削除の印を付けて残す（Google 側からも消すため）
+        if (ch.coll === 'events' && isSynced(cur)) state[ch.coll][ch.id] = { ...cur, deletedAt: now, updatedAt: now };
+        else delete state[ch.coll][ch.id];
+      } else {
+        const r = structuredClone(rec);
+        if (ch.coll === 'events' && (isSynced(r) || isSynced(cur))) {
+          r.updatedAt = Math.max(now, (cur?.updatedAt || 0) + 1);
+          if (isSynced(cur)) r.source = { ...r.source, ...cur.source };
+        }
+        state[ch.coll][ch.id] = r;
+      }
       touched.add(ch.coll);
     }
     return touched;
@@ -45,10 +59,12 @@ export function createStore(storage) {
     const changes = [];
     const tx = {
       get: (coll, id) => state[coll][id],
-      put(coll, rec) {
+      /** keepUpdatedAt: 同期で書き込むときは rec の updatedAt をそのまま使う */
+      put(coll, rec, { keepUpdatedAt = false } = {}) {
         if (!COLLECTIONS.includes(coll)) throw new Error('unknown collection ' + coll);
         const before = state[coll][rec.id] ? structuredClone(state[coll][rec.id]) : null;
-        const after = structuredClone({ ...rec, updatedAt: Date.now() });
+        // 同じミリ秒に続けて変えても、更新日時は必ず前より進める（同期の「未送信」判定のため）
+        const after = structuredClone(keepUpdatedAt && rec.updatedAt ? rec : { ...rec, updatedAt: Math.max(Date.now(), (before?.updatedAt || 0) + 1) });
         state[coll][rec.id] = after;
         changes.push({ coll, id: rec.id, before, after });
       },

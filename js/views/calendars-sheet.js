@@ -18,6 +18,7 @@ export function openCalendarsSheet() {
         h('button.cal-name', { onclick: () => openCalendarEditor(c, render) },
           h('span', c.name),
           c.id === defId && h('span.cal-badge', '既定'),
+          c.source?.provider === 'google' && h('span.cal-badge', 'Google'),
           h('span.cal-count', `${eventCountOf(c.id)}件`)))),
       h('button.btn.secondary.wide', { onclick: () => openCalendarEditor(null, render) }, icon('plus', 'icon inline'), 'カレンダーを追加'));
   };

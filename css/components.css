@@ -179,3 +179,4 @@ select.input { width: auto; padding-right: 28px; background-image: linear-gradie
 .notify-dot.on { background: #3BB273; }
 .notify-dot.warn { background: #EF9F27; }
 .input.auto { width: auto; }
+.ro-note { background: var(--surface2); padding: 10px 12px; border-radius: var(--radius-sm); }

@@ -117,7 +117,7 @@ export function zonedToLocal(y, mo, d, h, mi, tz) {
 const toLocalDT = ms => { const t = new Date(ms); return `${makeKey(t.getFullYear(), t.getMonth() + 1, t.getDate())}T${pad2(t.getHours())}:${pad2(t.getMinutes())}`; };
 
 /** DTSTART などの値 → { allDay, value }（値は 'YYYY-MM-DD' か 'YYYY-MM-DDTHH:mm'） */
-function parseDateValue(value, params) {
+export function parseDateValue(value, params) {
   const m = value.trim().match(/^(\d{4})(\d{2})(\d{2})(?:T(\d{2})(\d{2})(\d{2})?(Z)?)?$/);
   if (!m) return null;
   const [, y, mo, d, h, mi, , z] = m;
@@ -134,7 +134,7 @@ function parseDuration(s) {
 }
 
 const FREQS = ['DAILY', 'WEEKLY', 'MONTHLY', 'YEARLY'];
-function parseRRule(value) {
+export function parseRRule(value) {
   const kv = Object.fromEntries(value.split(';').map(p => { const [k, v] = p.split('='); return [k.toUpperCase(), v]; }));
   if (!FREQS.includes(kv.FREQ)) return null;
   const r = { freq: kv.FREQ, interval: kv.INTERVAL ? Math.max(1, +kv.INTERVAL) : 1 };

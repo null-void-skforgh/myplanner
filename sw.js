@@ -2,7 +2,7 @@
 // 新しい版はインストール後に待機し、画面の「更新」ボタンで切り替わる（js/pwa.js）。
 // VERSION と ASSETS は `npm run bump` で自動更新する。手で編集しない。
 
-const VERSION = '2.5.0';
+const VERSION = '2.6.0';
 const CACHE = 'myplanner-' + VERSION;
 const ASSETS = [
   './',
@@ -37,6 +37,9 @@ const ASSETS = [
   'js/features/startup-tasks.js',
   'js/features/todo-actions.js',
   'js/features/widget.js',
+  'js/integrations/google-map.js',
+  'js/integrations/google-sync.js',
+  'js/integrations/google.js',
   'js/main.js',
   'js/nlp/parse-ja.js',
   'js/pwa.js',
@@ -56,6 +59,7 @@ const ASSETS = [
   'js/views/calendars-sheet.js',
   'js/views/class-add.js',
   'js/views/event-editor.js',
+  'js/views/google-sheet.js',
   'js/views/ics-io.js',
   'js/views/memo.js',
   'js/views/quick-add.js',

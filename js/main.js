@@ -23,6 +23,7 @@ import { ensureNotesMigrated } from './features/notes.js';
 import { registerServiceWorker } from './pwa.js';
 import { maybeRemindBackup } from './features/backup.js';
 import { startScheduleSync } from './features/server.js';
+import { startGoogleSync } from './integrations/google.js';
 
 function boot() {
   const storage = createStorage();
@@ -111,6 +112,9 @@ function boot() {
 
   // ── 通知 ──
   startScheduleSync();
+  startGoogleSync({ onError: e => {
+    if (e.message === 'google_reauth' || e.message === 'google_not_connected') toast('Googleとの接続が切れました。「設定 → Googleカレンダー」から接続し直してください', { duration: 5000 });
+  } });
   // 通知をタップしたら、その日の画面を開く（sw.js の notificationclick から）
   navigator.serviceWorker?.addEventListener('message', e => {
     if (e.data?.type !== 'open') return;

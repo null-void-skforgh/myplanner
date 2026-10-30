@@ -12,6 +12,7 @@ import { openRecurrenceEditor } from './recurrence-editor.js';
 import { sortedCalendars, defaultCalendarId } from '../features/calendars.js';
 import { TIMED_PRESETS, ALLDAY_PRESETS, reminderLabel } from '../features/notify.js';
 import { defaultReminders } from './calendar/actions.js';
+import { eventReadOnly, calReadOnly, isGoogleCal } from '../integrations/google-sync.js';
 
 const FIELDS = ['title', 'allDay', 'start', 'end', 'calendarId', 'color', 'rrule', 'location', 'notes', 'reminders'];
 
@@ -24,6 +25,7 @@ export const mapUrl = q => `https://maps.apple.com/?q=${encodeURIComponent(q)}`;
 export function openEventEditor(target) {
   const isNew = !!target.draft;
   const occ = isNew ? null : target;
+  const readOnly = !isNew && eventReadOnly(occ.event, app.store.state.calendars);
   const src = isNew
     ? { title: '', color: null, rrule: null, location: '', notes: '', calendarId: defaultCalendarId(), ...target.draft }
     : { ...occ.event, start: occ.start, end: occ.end };
@@ -145,7 +147,8 @@ export function openEventEditor(target) {
 
   // ── カレンダー・色 ──
   const calSel = h('select.input', { onchange: e => { v.calendarId = e.target.value; renderColors(); } },
-    sortedCalendars().map(c => h('option', { value: c.id, selected: c.id === v.calendarId }, c.name)));
+    sortedCalendars().filter(c => !calReadOnly(c) || c.id === v.calendarId)
+      .map(c => h('option', { value: c.id, selected: c.id === v.calendarId }, c.name + (isGoogleCal(c) ? '（Google）' : ''))));
   const colors = h('div.color-picker');
   const renderColors = () => {
     const calColor = app.store.state.calendars[v.calendarId]?.color ?? 0;
@@ -190,6 +193,7 @@ export function openEventEditor(target) {
   };
 
   const content = h('div.form',
+    readOnly && h('p.note.ro-note', '🔒 Googleカレンダーの読み取り専用の予定です（祝日・共有カレンダー、またはアプリで扱えない繰り返し）。変更はGoogleカレンダーで行ってください。'),
     h('div.field', titleIn),
     h('label.field.row', h('span.field-label', '終日'), h('span.switch', allDayIn, h('span.switch-ui'))),
     h('div.field.row', h('span.field-label', '開始'), h('div.dt', sDate, sTime)),
@@ -201,14 +205,15 @@ export function openEventEditor(target) {
     h('div.field', h('div.field-label', '色'), colors),
     h('div.field.row.loc-row', locIn, mapLink),
     h('div.field', notesIn),
-    !isNew && h('button.btn.danger.wide', { onclick: async () => { if (await removeOccurrence(occ)) sheet.close(); } }, '予定を削除'),
+    !isNew && !readOnly && h('button.btn.danger.wide', { onclick: async () => { if (await removeOccurrence(occ)) sheet.close(); } }, '予定を削除'),
   );
 
   const sheet = openSheet({
     title: isNew ? '新しい予定' : '予定の編集',
     content,
-    headerRight: h('button.pill-btn.primary', { onclick: save }, isNew ? '追加' : '保存'),
+    headerRight: !readOnly && h('button.pill-btn.primary', { onclick: save }, isNew ? '追加' : '保存'),
   });
+  if (readOnly) content.querySelectorAll('input, select, textarea, button').forEach(el => { el.disabled = true; });
   titleIn.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); save(); } });
   if (isNew && !v.title) titleIn.focus();
 }

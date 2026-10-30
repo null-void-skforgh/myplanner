@@ -5,13 +5,15 @@
 // 環境変数（wrangler secret put で登録。リポジトリには入れない）
 //   PAIR_CODE         アプリをつなぐときの接続コード
 //   VAPID_PRIVATE_JWK 通知用の鍵（JSON）
+//   GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET  Google Cloud の OAuth クライアント
 // wrangler.toml の vars
 //   ALLOWED_ORIGINS   アプリの URL（カンマ区切り）
 //   VAPID_SUBJECT     通知サービスに伝える連絡先（https URL か mailto:）
 
 import { sendPush, publicKeyFromJwk, b64u } from './webpush.js';
+import * as google from './google.js';
 
-export const SERVER_VERSION = '1';
+export const SERVER_VERSION = '2';
 const GRACE_MS = 15 * 60 * 1000;   // 遅れてもこの時間内なら送る
 const KEEP_MS = 3 * 86400 * 1000;  // 送ったあと・過ぎたあとに残しておく期間
 const MAX_ITEMS = 1000;
@@ -32,8 +34,8 @@ function cors(env, req) {
   const allowed = (env.ALLOWED_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean);
   return allowed.includes(origin) ? {
     'Access-Control-Allow-Origin': origin,
-    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-    'Access-Control-Allow-Headers': 'Authorization, Content-Type',
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
+    'Access-Control-Allow-Headers': 'Authorization, Content-Type, X-Method',
     'Access-Control-Max-Age': '86400',
     Vary: 'Origin',
   } : { Vary: 'Origin' };
@@ -98,6 +100,8 @@ export async function handleRequest(req, env, now = Date.now()) {
     return json({ token, deviceId: id, vapidPublicKey: vapidPublic(env) }, 200, h);
   }
 
+  if (pathname === '/oauth/callback' && req.method === 'GET') return google.callback(env, req, now);
+
   if (!pathname.startsWith('/api/')) return json({ error: 'not_found' }, 404, h);
   const device = await authDevice(env, req);
   if (!device) return json({ error: 'unauthorized' }, 401, h);
@@ -125,6 +129,31 @@ export async function handleRequest(req, env, now = Date.now()) {
     const r = await pushTo(env, device, { title: '🔔 テスト通知', body: 'マイプランナーから通知が届きました。', tag: 'test', url: './#/settings' });
     return json(r, r.ok ? 200 : 502, h);
   }
+  // ── Google カレンダー ──
+  if (pathname.startsWith('/api/google')) {
+    if (!env.GOOGLE_CLIENT_ID || !env.GOOGLE_CLIENT_SECRET) return json({ error: 'google_not_configured' }, 501, h);
+    try {
+      if (pathname === '/api/google/status' && req.method === 'GET') {
+        const acc = await google.account(env);
+        return json({ connected: !!acc, email: acc?.email || null }, 200, h);
+      }
+      if (pathname === '/api/google/auth' && req.method === 'POST') {
+        return json({ url: await google.authUrl(env, req, device.id, now, randomToken) }, 200, h);
+      }
+      if (pathname === '/api/google' && req.method === 'DELETE') { await google.disconnect(env); return json({ ok: true }, 200, h); }
+      if (pathname === '/api/google/api') {
+        // 中継：?path=/calendars/.../events  本文はそのまま
+        const path = new URL(req.url).searchParams.get('path') || '';
+        const res = await google.proxy(env, path, req.method === 'POST' && req.headers.get('X-Method') ? req.headers.get('X-Method') : req.method,
+          ['GET', 'DELETE'].includes(req.method) ? null : await req.text(), now);
+        return new Response(res.body, { status: res.status, headers: { ...Object.fromEntries(res.headers), ...h } });
+      }
+    } catch (e) {
+      return json({ error: e.message }, e.status || 500, h);
+    }
+    return json({ error: 'not_found' }, 404, h);
+  }
+
   if (pathname === '/api/device' && req.method === 'DELETE') {
     await env.DB.batch([
       env.DB.prepare('DELETE FROM notifications WHERE device_id = ?').bind(device.id),
