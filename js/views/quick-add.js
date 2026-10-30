@@ -70,11 +70,12 @@ export function openQuickAdd({ baseDate, mode = 'event', text = '' } = {}) {
 
   const sheet = openSheet({
     title: 'すばやく追加',
+    top: true,
     headerRight: h('button.pill-btn.primary', { onclick: submit }, '追加'),
     content: h('div.form', h('div.quick-head', seg,
       h('button.pill-btn', { onclick: () => { sheet.close(); openClassAdd({ baseDate }); } }, '📚 授業')), input, preview, h('button.btn.secondary.wide', { onclick: details }, '詳細を入力して追加…')),
   });
   update();
   // iOS はタップ処理の中で同期的に focus しないとキーボードが出ない
-  input.focus();
+  input.focus({ preventScroll: true });
 }

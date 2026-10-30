@@ -210,12 +210,13 @@ export function openEventEditor(target) {
 
   const sheet = openSheet({
     title: isNew ? '新しい予定' : '予定の編集',
+    top: isNew,
     content,
     headerRight: !readOnly && h('button.pill-btn.primary', { onclick: save }, isNew ? '追加' : '保存'),
   });
   if (readOnly) content.querySelectorAll('input, select, textarea, button').forEach(el => { el.disabled = true; });
   titleIn.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); save(); } });
-  if (isNew && !v.title) titleIn.focus();
+  if (isNew && !v.title) titleIn.focus({ preventScroll: true });
 }
 
 /** 新規作成の既定（今日なら次の正時から1時間、それ以外は 9:00） */

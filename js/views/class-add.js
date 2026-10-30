@@ -86,6 +86,7 @@ export function openClassAdd({ baseDate } = {}) {
 
   const sheet = openSheet({
     title: '授業を追加',
+    top: true,
     headerRight: addBtn,
     content: h('div.form',
       h('div.field', subjectIn),
@@ -101,5 +102,5 @@ export function openClassAdd({ baseDate } = {}) {
       h('p.note', '毎週くり返す予定として「授業」カレンダーに入ります。休講の日は、その回をタップ →「削除」→「この予定だけ」で消せます。時限の時刻は「設定 → 授業の時間割」で変えられます。')),
   });
   update();
-  subjectIn.focus();
+  subjectIn.focus({ preventScroll: true });
 }

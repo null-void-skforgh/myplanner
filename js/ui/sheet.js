@@ -1,14 +1,32 @@
-// 下から出るシート（モーダル）と選択ダイアログ
+// 下（または上）から出るシート（モーダル）と選択ダイアログ
 
 import { h, icon } from './dom.js';
 import { dismissToast } from './toast.js';
 
 const stack = [];
 
+// iPhone でキーボードが出ると、見えている範囲（visualViewport）だけが縮む。
+// シートの背景をその範囲に合わせて、シートがキーボードの裏に隠れないようにする。
+function watchViewport() {
+  const vv = window.visualViewport;
+  if (!vv || watchViewport.done) return;
+  watchViewport.done = true;
+  const root = document.documentElement.style;
+  const update = () => {
+    root.setProperty('--vv-top', `${vv.offsetTop}px`);
+    root.setProperty('--vv-height', `${vv.height}px`);
+  };
+  vv.addEventListener('resize', update);
+  vv.addEventListener('scroll', update);
+  update();
+}
+
 /**
- * @param {{title?:string, content:Node, full?:boolean, actions?:Node, onClose?:()=>void}} opts
+ * @param {{title?:string, content:Node, full?:boolean, top?:boolean, onClose?:()=>void}} opts
+ *   top: 画面の上から出す（すぐ文字を入力するシート向け。キーボードと重ならない）
  */
-export function openSheet({ title, content, full = false, headerRight, onClose }) {
+export function openSheet({ title, content, full = false, top = false, headerRight, onClose }) {
+  watchViewport();
   const root = document.getElementById('sheet-root');
   dismissToast(); // シートのボタンにトーストが重ならないように
   const close = () => {
@@ -18,14 +36,15 @@ export function openSheet({ title, content, full = false, headerRight, onClose }
     stack.splice(stack.indexOf(api), 1);
     onClose?.();
   };
-  const panel = h('div.sheet' + (full ? '.full' : ''), { role: 'dialog', 'aria-modal': 'true', 'aria-label': title || '' },
-    h('div.sheet-grip'),
+  const panel = h('div.sheet' + (full ? '.full' : '') + (top ? '.top' : ''), { role: 'dialog', 'aria-modal': 'true', 'aria-label': title || '' },
+    !top && h('div.sheet-grip'),
     (title || headerRight) && h('div.sheet-header',
       h('button.icon-btn', { 'aria-label': '閉じる', onclick: close }, icon('close')),
       h('div.sheet-title', title || ''),
       h('div.sheet-header-right', headerRight || null)),
-    h('div.sheet-body', content));
-  const overlay = h('div.sheet-overlay', { onclick: e => { if (e.target === overlay) close(); } }, panel);
+    h('div.sheet-body', content),
+    top && h('div.sheet-grip'));
+  const overlay = h('div.sheet-overlay' + (top ? '.top' : ''), { onclick: e => { if (e.target === overlay) close(); } }, panel);
   root.appendChild(overlay);
   requestAnimationFrame(() => overlay.classList.add('show'));
   const api = { close, el: panel };

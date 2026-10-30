@@ -24,11 +24,15 @@
 
 /* シート */
 #sheet-root { position: relative; z-index: 300; }
-.sheet-overlay { position: fixed; inset: 0; background: var(--overlay); display: flex; align-items: flex-end; justify-content: center; opacity: 0; transition: opacity .2s; }
+.sheet-overlay { position: fixed; left: 0; right: 0; top: var(--vv-top, 0px); height: var(--vv-height, 100%); background: var(--overlay); display: flex; align-items: flex-end; justify-content: center; opacity: 0; transition: opacity .2s; }
 .sheet-overlay.show { opacity: 1; }
 .sheet { background: var(--surface); width: 100%; max-width: 560px; max-height: calc(100% - var(--safe-top) - 24px); border-radius: 16px 16px 0 0; display: flex; flex-direction: column; transform: translateY(40px); transition: transform .22s ease-out; padding-bottom: var(--safe-bottom); }
 .sheet-overlay.show .sheet { transform: none; }
 .sheet.full { height: calc(100% - var(--safe-top) - 12px); }
+.sheet-overlay.top { align-items: flex-start; }
+.sheet.top { border-radius: 0 0 16px 16px; padding-top: var(--safe-top); padding-bottom: 0; transform: translateY(-40px); max-height: calc(100% - 12px); }
+.sheet.top .sheet-body { padding-bottom: 12px; }
+.sheet.top .sheet-grip { margin: 0 auto 7px; }
 .sheet-grip { width: 36px; height: 5px; border-radius: 3px; background: var(--border-strong); margin: 7px auto 0; flex-shrink: 0; }
 .sheet-header { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 4px 10px 6px; flex-shrink: 0; }
 .sheet-title { font-weight: 700; font-size: 16px; }
