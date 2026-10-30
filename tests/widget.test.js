@@ -44,3 +44,35 @@ test('リポジトリの todo-widget.js は生成コードと同じ', () => {
   const file = readFileSync(new URL('../todo-widget.js', import.meta.url), 'utf8');
   assert.equal(file, generateWidgetCode([], false));
 });
+
+// ── 予定のウィジェット ──
+const { dayEvents } = new Function(SHARED_SOURCE + '; return { dayEvents };')();
+const E = (t, s, e, extra = {}) => ({ t, s, e, c: '#7F77DD', ...extra });
+const events = [
+  E('旅行', '2026-11-02', '2026-11-04', { a: 1 }),
+  E('朝ゼミ', '2026-11-03T09:00', '2026-11-03T10:30'),
+  E('連続体の力学', '2026-11-03T13:00', '2026-11-03T14:45', { l: '工2' }),
+  E('バイト', '2026-11-03T18:00', '2026-11-03T22:00'),
+  E('夜勤', '2026-11-02T22:00', '2026-11-03T06:00'),
+  E('明日の授業', '2026-11-04T10:25', '2026-11-04T12:10'),
+  E('明日の昼', '2026-11-04T12:00', '2026-11-04T13:00'),
+  E('前日0時まで', '2026-11-02T20:00', '2026-11-03T00:00'),
+];
+
+test('予定ウィジェット：終わった予定は省き、進行中は「〜終了時刻」', () => {
+  const d = dayEvents(events, new Date(2026, 10, 3, 13, 30), 5);
+  assert.deepEqual(d.rows.map(e => [e.t, e.label, !!e.now]), [['旅行', '終日', false], ['連続体の力学', '〜14:45', true], ['バイト', '18:00', false]]);
+  assert.equal(d.total, 5, '0時ちょうどに終わる前日の予定は今日に入れない');
+  assert.equal(d.ended, 2);
+  assert.deepEqual(d.tomorrow.map(e => [e.t, e.label]), [['明日の授業', '10:25']], '旅行（終日・11/4 は含まない）は明日に出さない');
+});
+
+test('予定ウィジェット：行が余れば明日の予定、足りなければ「他N件」', () => {
+  const d = dayEvents(events, new Date(2026, 10, 3, 23, 0), 5);
+  assert.deepEqual(d.rows.map(e => e.t), ['旅行']);
+  assert.deepEqual(d.tomorrow.map(e => e.t), ['明日の授業', '明日の昼']);
+  const small = dayEvents(events, new Date(2026, 10, 3, 8, 0), 3);
+  assert.deepEqual(small.rows.map(e => e.t), ['旅行', '朝ゼミ', '連続体の力学']);
+  assert.equal(small.hidden, 1);
+  assert.equal(small.tomorrow.length, 0);
+});

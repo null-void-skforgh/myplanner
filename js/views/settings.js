@@ -8,7 +8,10 @@ import { applyTheme } from '../ui/theme.js';
 import { createStorage, KEYS } from '../core/storage.js';
 import { remigrateFromBackup } from '../core/migrate.js';
 import { createStore } from '../core/store.js';
-import { generateWidgetCode } from '../features/widget.js';
+import { generateWidgetCode, widgetEvents, sharedFns } from '../features/widget.js';
+import { occurrencesInRange } from '../core/events.js';
+import { todayKey, addDays } from '../core/date.js';
+import { colorOf } from '../app.js';
 import { arrangeTodos, dueLabel, isOverdue, WIDGET_ROWS } from '../features/todo-actions.js';
 import { checkForUpdate } from '../pwa.js';
 import { exportBackup, lastExportLabel } from '../features/backup.js';
@@ -250,6 +253,23 @@ function classPeriodsCard(s) {
     !isDefault && h('button.btn.secondary.wide', { onclick: () => app.store.setSettings({ classPeriods: DEFAULT_PERIODS.map(p => [...p]) }) }, '東大の時刻（105分）に戻す'));
 }
 
+/** 「予定」ウィジェットのプレビュー（ミディアムサイズ） */
+function eventsWidgetPreview() {
+  const now = new Date();
+  const evs = widgetEvents(occurrencesInRange(app.store.eventList(), todayKey(), addDays(todayKey(), 2), { isVisible: app.store.isCalendarVisible }), colorOf);
+  const d = sharedFns().dayEvents(evs, now, WIDGET_ROWS);
+  const WD = ['日', '月', '火', '水', '木', '金', '土'];
+  const row = (e, dim) => h('div.wp-row' + (dim ? '.dim' : ''),
+    h('span.wp-bar', { style: { color: e.c } }, '▍'), h('span.wp-time' + (e.now ? '.now' : ''), e.label), h('span.wp-text', e.t), !dim && e.l && h('span.wp-due', e.l));
+  return h('div.wp', { 'aria-label': '予定ウィジェットのプレビュー' },
+    h('div.wp-head', h('span.wp-title', `📅 今日 ${now.getMonth() + 1}/${now.getDate()}(${WD[now.getDay()]})`),
+      h('span.wp-count', d.total ? (d.ended ? `残り ${d.total - d.ended}件` : `${d.total}件`) : '')),
+    d.rows.map(e => row(e, false)),
+    d.hidden > 0 && h('div.wp-more', `他 ${d.hidden} 件`),
+    !d.rows.length && h('div.wp-more', d.total ? '✅ 今日の予定は終わりました' : '今日の予定はありません'),
+    d.tomorrow.length > 0 && [h('div.wp-sub', '明日'), d.tomorrow.map(e => row(e, true))]);
+}
+
 export function mountSettings(page) {
   const body = h('div.page-scroll');
   clear(page, h('header.app-header', h('div.page-title', '設定')), body);
@@ -299,9 +319,9 @@ export function mountSettings(page) {
 
       h('section.card',
         h('div.section-label', '📱 ホーム画面ウィジェット（Scriptable）'),
-        widgetPreview(),
-        h('p.note', 'Todo画面の「ウィジェットに同期」で、未完了のTodoをウィジェットに送れます。★だいじなTodoは常に先頭に、残りは期限が早い順に表示されます。初回だけ下の手順でセットアップしてください。'),
-        h('p.note', '⚠️ 2.3.0 でウィジェットのコードが新しくなりました。★を表示するには「コードをコピー」してScriptableのスクリプトに貼り直してください（1回だけ）。'),
+        h('div.wp-pair', widgetPreview(), eventsWidgetPreview()),
+        h('p.note', 'Todo画面の「ウィジェットに同期」で、未完了のTodoと1週間分の予定をウィジェットに送れます。Todo は★だいじ → 期限が早い順、予定は今日のこれからの予定を時刻順に表示します（空いた行には明日の予定）。'),
+        h('p.note', '⚠️ 2.8.0 でウィジェットのコードが新しくなりました。「予定」のウィジェットを使うには「コードをコピー」してScriptableのスクリプトに貼り直してください（1回だけ）。'),
         h('div.btn-row',
           h('button.btn', { onclick: () => copyText(generateWidgetCode(app.store.todoList(), false)) }, 'コードをコピー'),
           h('button.btn.secondary', { onclick: () => copyText(generateWidgetCode(app.store.todoList(), true)) }, 'Todoデータも含める')),
@@ -309,7 +329,8 @@ export function mountSettings(page) {
           h('li', h('b', 'Scriptableをインストール'), h('br'), h('a', { href: 'https://apps.apple.com/jp/app/scriptable/id1405459188' }, 'App Store → Scriptable（無料）')),
           h('li', h('b', 'スクリプトを貼り付け'), h('br'), 'Scriptableを開いて「＋」→ コードを貼り付けて保存（名前：マイプランナー）'),
           h('li', h('b', 'ホーム画面に追加'), h('br'), 'ホーム画面を長押し →「＋」→ Scriptableを検索 → ミディアムを選択'),
-          h('li', h('b', 'スクリプトを選択'), h('br'), 'ウィジェットを長押し →「ウィジェットを編集」→「マイプランナー」を選択'))),
+          h('li', h('b', 'スクリプトを選択'), h('br'), 'ウィジェットを長押し →「ウィジェットを編集」→ Script で「マイプランナー」を選択'),
+          h('li', h('b', '予定のウィジェット（2つ目）'), h('br'), '同じ手順でミディアムをもう1つ追加 →「ウィジェットを編集」→ Script で「マイプランナー」、Parameter に「予定」と入力'))),
 
       h('section.card',
         h('div.section-label', 'このアプリについて'),
