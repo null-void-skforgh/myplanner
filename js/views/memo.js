@@ -2,6 +2,7 @@
 // 編集中のメモでは、カーソルのある行（または選択した行）から Todo や予定を作れる。
 
 import { app } from '../app.js';
+import { todoMemoSwitch } from './sub-switch.js';
 import { h, clear, icon } from '../ui/dom.js';
 import { choose, confirmDialog } from '../ui/sheet.js';
 import { toast } from '../ui/toast.js';
@@ -40,9 +41,9 @@ export function mountMemo(page) {
 
   // ── 一覧 ──
   function renderList() {
-    const seg = h('div.segmented.small', [['notes', 'メモ'], ['reviews', '振り返り']].map(([k, l]) =>
+    const seg = h('div.segmented.small', [['notes', '一覧'], ['reviews', '振り返り']].map(([k, l]) =>
       h('button', { 'aria-selected': String(k === tab), onclick: () => { tab = k; renderList(); } }, l)));
-    const header = h('header.app-header', h('div.page-title', 'メモ'), h('div.spacer'), seg,
+    const header = h('header.app-header', todoMemoSwitch('memo'), h('div.spacer'), seg,
       tab === 'notes' && h('button.icon-btn', { 'aria-label': '新しいメモ', onclick: () => openNote(createNote().id, true) }, icon('plus')));
     const body = h('div.page-scroll');
     clear(root, header, body);

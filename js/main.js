@@ -13,6 +13,7 @@ import { mountCalendar } from './views/calendar/index.js';
 import { mountTodo } from './views/todo.js';
 import { mountMemo } from './views/memo.js';
 import { mountSettings } from './views/settings.js';
+import { mountMove } from './views/move.js';
 import { openEventEditor } from './views/event-editor.js';
 import { openQuickAdd } from './views/quick-add.js';
 import { openClassAdd } from './views/class-add.js';
@@ -44,11 +45,18 @@ function boot() {
     cal: mountCalendar(document.getElementById('page-cal')),
     todo: mountTodo(document.getElementById('page-todo')),
     memo: mountMemo(document.getElementById('page-memo')),
+    move: mountMove(document.getElementById('page-move')),
     settings: mountSettings(document.getElementById('page-settings')),
   };
   const tabs = document.querySelectorAll('.tab');
+  // メモは Todo のタブの中（Todo｜メモ で切り替え）。Todo のタブは最後に見ていた方を開く
+  const tabOf = page => (page === 'memo' ? 'todo' : page);
+  let lastTodoSub = 'todo';
+  router.subscribe(s => { if (s.page === 'todo' || s.page === 'memo') lastTodoSub = s.page; });
   tabs.forEach(t => t.addEventListener('click', () => {
-    const page = t.dataset.page;
+    let page = t.dataset.page;
+    if (page === 'todo' && router.state.page !== 'todo' && router.state.page !== 'memo') page = lastTodoSub;
+    else if (page === 'todo' && router.state.page === 'memo') page = 'memo';
     if (page === router.state.page && page === 'cal') router.go({ date: todayKey() });
     else if (page === router.state.page && page === 'memo') pages.memo.toList();
     else router.go({ page }, { push: true });
@@ -56,7 +64,7 @@ function boot() {
 
   function showPage(page) {
     for (const [name] of Object.entries(pages)) document.getElementById('page-' + name).classList.toggle('active', name === page);
-    tabs.forEach(t => t.setAttribute('aria-selected', String(t.dataset.page === page)));
+    tabs.forEach(t => t.setAttribute('aria-selected', String(t.dataset.page === tabOf(page))));
     pages[page].render();
   }
   router.subscribe((s, prev) => {

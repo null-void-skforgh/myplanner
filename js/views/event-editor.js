@@ -13,6 +13,7 @@ import { sortedCalendars, defaultCalendarId } from '../features/calendars.js';
 import { TIMED_PRESETS, ALLDAY_PRESETS, reminderLabel } from '../features/notify.js';
 import { defaultReminders } from './calendar/actions.js';
 import { eventReadOnly, calReadOnly, isGoogleCal } from '../integrations/google-sync.js';
+import { openRouteSheet } from './route-sheet.js';
 
 const FIELDS = ['title', 'allDay', 'start', 'end', 'calendarId', 'color', 'rrule', 'location', 'notes', 'reminders'];
 
@@ -165,7 +166,9 @@ export function openEventEditor(target) {
   const mapLink = h('a.pill-btn', { target: '_blank', rel: 'noopener' }, '地図');
   const locIn = h('input.input', { type: 'text', placeholder: '場所', value: v.location, enterkeyhint: 'done', autocomplete: 'off',
     oninput: e => { v.location = e.target.value; syncMap(); } });
-  const syncMap = () => { mapLink.hidden = !v.location.trim(); mapLink.href = mapUrl(v.location.trim()); };
+  // 経路：開始の数分前に着く電車を Yahoo!乗換案内で調べる
+  const routeBtn = h('button.pill-btn', { onclick: () => openRouteSheet({ title: v.title, place: v.location.trim(), start: v.start, allDay: v.allDay }) }, '🚃 経路');
+  const syncMap = () => { mapLink.hidden = routeBtn.hidden = !v.location.trim(); mapLink.href = mapUrl(v.location.trim()); };
   syncMap();
   const notesIn = h('textarea.input.notes-input', { placeholder: 'メモ', rows: 3, value: v.notes, oninput: e => { v.notes = e.target.value; } });
 
@@ -203,7 +206,7 @@ export function openEventEditor(target) {
     h('div.field.row.rem-row', h('span.field-label', icon('bell', 'icon inline'), '通知'), remWrap),
     h('div.field.row', h('span.field-label', 'カレンダー'), calSel),
     h('div.field', h('div.field-label', '色'), colors),
-    h('div.field.row.loc-row', locIn, mapLink),
+    h('div.field.row.loc-row', locIn, mapLink, routeBtn),
     h('div.field', notesIn),
     !isNew && !readOnly && h('button.btn.danger.wide', { onclick: async () => { if (await removeOccurrence(occ)) sheet.close(); } }, '予定を削除'),
   );

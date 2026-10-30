@@ -20,6 +20,7 @@ import { isConnected, connect, disconnect, enablePush, status, sendTest, permiss
 import { TIMED_PRESETS, reminderLabel } from '../features/notify.js';
 import { googleStatus, startGoogleAuth, disconnectGoogle, googleCalendars, syncAll, lastSyncAt, onSyncState, isSyncing } from '../integrations/google.js';
 import { openGoogleCalendarPicker } from './google-sheet.js';
+import { DEFAULT_MARGIN } from '../features/transit.js';
 import { VERSION } from '../version.js';
 
 function segmented(options, current, onChange) {
@@ -213,6 +214,21 @@ function googleCard(rerender) {
   return card;
 }
 
+/** 移動（乗換案内） */
+function moveCard(s) {
+  const learned = Object.keys(s.placeStations || {}).length;
+  return h('section.card',
+    h('div.section-label', '🚃 移動'),
+    h('div.setting-row', h('span', '既定の出発地'),
+      h('input.input.auto.home-station', { type: 'text', placeholder: '例：東京', value: s.homeStation || '', autocomplete: 'off', enterkeyhint: 'done',
+        onchange: e => { app.store.setSettings({ homeStation: e.target.value.trim() }); toast('出発地を保存しました'); } })),
+    h('div.setting-row', h('span', '到着の余裕'),
+      segmented([[0, 'ちょうど'], [5, '5分前'], [10, '10分前'], [15, '15分前']], s.arriveMargin ?? DEFAULT_MARGIN, v => app.store.setSettings({ arriveMargin: v }))),
+    h('p.note', '予定の「🚃 経路」や「移動」タブから、ここの出発地 → 予定の場所へ、開始の数分前に着く電車を Yahoo!乗換案内で調べます。出発地はその場で変えることもできます。'),
+    learned > 0 && h('div.setting-row', h('span.muted', `覚えた行き先 ${learned}件（場所 → 駅名）`),
+      h('button.pill-btn', { onclick: () => { app.store.setSettings({ placeStations: {} }); toast('覚えた行き先を消しました'); } }, '消す')));
+}
+
 /** 授業の時間割（各時限の開始・終了時刻） */
 function classPeriodsCard(s) {
   const periods = periodsOf(s).map(p => [...p]);
@@ -262,6 +278,8 @@ export function mountSettings(page) {
       notifyCard(s, render),
 
       googleCard(render),
+
+      moveCard(s),
 
       classPeriodsCard(s),
 

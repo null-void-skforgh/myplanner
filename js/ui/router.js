@@ -1,9 +1,10 @@
 // 画面の状態を URL ハッシュに持つ（再起動しても同じ画面に戻れる）
-// #/cal/week/2026-10-29  #/todo  #/memo  #/settings
+// #/cal/week/2026-10-29  #/todo  #/memo  #/move  #/settings
+// メモはタブを持たず、Todo のタブの中で切り替える
 
 import { normalizeKey, todayKey } from '../core/date.js';
 
-export const PAGES = ['cal', 'todo', 'memo', 'settings'];
+export const PAGES = ['cal', 'todo', 'memo', 'move', 'settings'];
 export const VIEWS = ['month', 'week', 'day', 'agenda'];
 
 export function parseHash(hash, defaults) {

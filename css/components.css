@@ -196,3 +196,17 @@ select.input { width: auto; padding-right: 28px; background-image: linear-gradie
 .dt input[type="time"] { flex: 1 1 0; max-width: 100px; min-width: 76px; }
 .input[type="date"], .input[type="time"] { text-align: left; }
 .input::-webkit-date-and-time-value { text-align: left; margin: 0; }
+
+/* 移動 */
+.sub-switch > button { min-width: 56px; }
+.home-station { max-width: 55%; text-align: right; }
+.move-day { padding: 8px 6px 6px; }
+.move-day-label { font-size: 13px; font-weight: 700; color: var(--text2); padding: 4px 8px 6px; }
+.move-row { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; padding: 10px 8px; border-radius: var(--radius-sm); border-left: 4px solid var(--ev); }
+.move-row + .move-row { margin-top: 4px; }
+.move-time { font-size: 14px; font-weight: 600; width: 44px; flex-shrink: 0; color: var(--text2); }
+.move-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.move-title { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.move-place { font-size: 12.5px; color: var(--text2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.move-go { font-size: 13px; font-weight: 600; color: var(--accent-ink); flex-shrink: 0; }
+.loc-row .pill-btn { flex-shrink: 0; }

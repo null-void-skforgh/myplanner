@@ -85,4 +85,9 @@ export const DEFAULT_SETTINGS = {
   morningTime: '09:00',
   notifyTodos: true,        // 時刻つき Todo の10分前
   defaultReminder: null,    // 新しい予定（時刻あり）の通知。null = なし
+  // 移動（乗換案内）
+  homeStation: '',          // 既定の出発地
+  arriveMargin: 5,          // 開始の何分前に着くか
+  placeStations: {},        // 予定の場所 → 調べるときの行き先（駅名）
+  recentOrigins: [],
 };

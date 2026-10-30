@@ -1,6 +1,7 @@
 // Todo 画面とウィジェット同期
 // 並びはウィジェットと同じ：★だいじ → 期限が早い順。5件を超えた分は「他N件」にまとめる。
 
+import { todoMemoSwitch } from './sub-switch.js';
 import { app } from '../app.js';
 import { h, clear, icon } from '../ui/dom.js';
 import { parseJa } from '../nlp/parse-ja.js';
@@ -22,7 +23,7 @@ export function mountTodo(page) {
   };
   input.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); add(); } });
 
-  const header = h('header.app-header', h('div.page-title', 'Todo'), h('div.spacer'),
+  const header = h('header.app-header', todoMemoSwitch('todo'), h('div.spacer'),
     h('button.pill-btn', { onclick: () => syncToScriptable(app.store.todoList()) }, icon('sync', 'icon inline'), 'ウィジェットに同期'),
     h('button.icon-btn', { 'aria-label': '取り消す', onclick: () => app.store.undo() }, icon('undo')));
   const body = h('div.page-scroll');
