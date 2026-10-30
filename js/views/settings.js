@@ -270,6 +270,39 @@ function eventsWidgetPreview() {
     d.tomorrow.length > 0 && [h('div.wp-sub', '明日'), d.tomorrow.map(e => row(e, true))]);
 }
 
+// 設定の目次（カードの見出しに含まれる言葉 → ボタンの名前）
+const NAV = [['表示', '表示'], ['カレンダー', 'カレンダー'], ['通知', '通知'], ['Google', 'Google'], ['移動', '移動'],
+  ['授業', '授業'], ['データ', 'データ'], ['ウィジェット', 'ウィジェット'], ['このアプリ', 'アプリ']];
+
+/** 設定の上に固定する目次。押すとそのカードまでスクロールする */
+function settingsNav(body) {
+  const cards = [...body.querySelectorAll(':scope > section.card')];
+  const targets = NAV.map(([key, label]) => [label, cards.find(c => c.querySelector('.section-label')?.textContent.includes(key) && !c.dataset.nav)])
+    .filter(([, c]) => c).map(([label, c]) => { c.dataset.nav = label; return [label, c]; });
+  // カードの位置（スクロールする枠の中での上端）
+  const posOf = c => c.getBoundingClientRect().top - body.getBoundingClientRect().top + body.scrollTop;
+  const nav = h('nav.settings-nav', { 'aria-label': '設定の目次' }, targets.map(([label, c]) =>
+    h('button.chip', { onclick: () => {
+      body.scrollTo({ top: posOf(c) - nav.offsetHeight - 8, behavior: 'smooth' });
+    } }, label)));
+  // 今見ているカードのボタンを目立たせる
+  let ticking = false;
+  const mark = () => {
+    ticking = false;
+    const y = body.scrollTop + nav.offsetHeight + 20;
+    let cur = targets[0]?.[1];
+    for (const [, c] of targets) if (posOf(c) <= y) cur = c;
+    if (body.scrollTop + body.clientHeight >= body.scrollHeight - 4) cur = targets.at(-1)?.[1];
+    [...nav.children].forEach((b, i) => b.classList.toggle('on', targets[i][1] === cur));
+    // 目次の横スクロールだけを動かす（ページは動かさない）
+    const on = nav.querySelector('.on');
+    if (on && (on.offsetLeft < nav.scrollLeft || on.offsetLeft + on.offsetWidth > nav.scrollLeft + nav.clientWidth)) nav.scrollLeft = on.offsetLeft - 16;
+  };
+  body.onscroll = () => { if (!ticking) { ticking = true; requestAnimationFrame(mark); } };
+  requestAnimationFrame(mark);
+  return nav;
+}
+
 export function mountSettings(page) {
   const body = h('div.page-scroll');
   clear(page, h('header.app-header', h('div.page-title', '設定')), body);
@@ -277,6 +310,7 @@ export function mountSettings(page) {
   function render() {
     const s = app.store.state.settings;
     const report = createStorage().get(KEYS.migrationReport, null);
+    const keep = body.scrollTop; // 設定を変えて描き直しても、見ていた位置のまま
     clear(body,
       h('section.card',
         h('div.section-label', '表示'),
@@ -337,6 +371,8 @@ export function mountSettings(page) {
         h('div.setting-row', h('span', 'バージョン'), h('span.muted', VERSION)),
         h('button.btn.secondary.wide', { onclick: async () => { toast('確認しています…'); const r = await checkForUpdate(); if (!r) toast('最新版です'); } }, '更新を確認')),
     );
+    body.prepend(settingsNav(body));
+    body.scrollTop = keep;
   }
   return { render, onStoreChange(changed) { if (changed.has('settings') || changed.has('calendars') || changed.has('todos')) render(); } };
 }

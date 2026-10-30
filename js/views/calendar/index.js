@@ -12,7 +12,14 @@ import { openCalendarsSheet } from '../calendars-sheet.js';
 const VIEW_LABELS = [['month', '月'], ['week', '週'], ['day', '日'], ['agenda', 'リスト']];
 
 export function mountCalendar(page) {
-  const title = h('button.cal-title', { onclick: () => app.router.go({ date: todayKey() }) });
+  // 同じ日に移るとき（リストをスクロールしたあとの「今日」など）は、描き直さずに先頭まで戻す
+  const goDate = next => {
+    const { view, date } = app.router.state;
+    const list = body.querySelector('.agenda');
+    if (view === 'agenda' && next === date && list) { list.scrollTo({ top: 0, behavior: 'smooth' }); return; }
+    app.router.go({ date: next });
+  };
+  const title = h('button.cal-title', { onclick: () => goDate(todayKey()) });
   const undoBtn = h('button.icon-btn', { 'aria-label': '取り消す', onclick: () => app.store.undo() }, icon('undo'));
   const seg = h('div.segmented', { role: 'tablist' }, VIEW_LABELS.map(([v, label]) =>
     h('button', { role: 'tab', dataset: { view: v }, onclick: () => app.router.go({ view: v }) }, label)));
@@ -22,7 +29,7 @@ export function mountCalendar(page) {
       title,
       h('button.icon-btn', { 'aria-label': '次へ', onclick: () => step(1) }, icon('right')),
       h('div.spacer'),
-      h('button.pill-btn', { onclick: () => app.router.go({ date: todayKey() }) }, '今日'),
+      h('button.pill-btn', { onclick: () => goDate(todayKey()) }, '今日'),
       h('button.icon-btn', { 'aria-label': 'カレンダー', onclick: openCalendarsSheet }, icon('layers')),
       h('button.icon-btn', { 'aria-label': '検索', onclick: () => app.openSearch() }, icon('search')),
       undoBtn),
@@ -47,7 +54,7 @@ export function mountCalendar(page) {
         : view === 'week' ? addDays(date, 7 * dir)
         : addDays(date, dir);
     }
-    app.router.go({ date: next });
+    goDate(next);
   }
   attachSwipe(body, { onLeft: () => step(1), onRight: () => step(-1) });
 
