@@ -14,6 +14,8 @@ import { TIMED_PRESETS, ALLDAY_PRESETS, reminderLabel } from '../features/notify
 import { defaultReminders } from './calendar/actions.js';
 import { eventReadOnly, calReadOnly, isGoogleCal } from '../integrations/google-sync.js';
 import { openRouteSheet } from './route-sheet.js';
+import { openSyllabus, openSyllabusSheet, openUrl } from './syllabus-sheet.js';
+import { savedUrl, findUrls } from '../features/syllabus.js';
 
 const FIELDS = ['title', 'allDay', 'start', 'end', 'calendarId', 'color', 'rrule', 'location', 'notes', 'reminders'];
 
@@ -40,7 +42,7 @@ export function openEventEditor(target) {
 
   // ── タイトル・日時 ──
   const titleIn = h('input.input.title-input', { type: 'text', placeholder: 'タイトル', value: v.title, enterkeyhint: 'done',
-    oninput: e => { v.title = e.target.value; } });
+    oninput: e => { v.title = e.target.value; if (isClass()) renderSyllabus(); } });
   const allDayIn = h('input', { type: 'checkbox', checked: v.allDay, onchange: e => {
     Object.assign(v, toggleAllDay(v, e.target.checked, 9)); v.allDay = e.target.checked;
     v.reminders = defaultReminders(v.allDay); // 終日と時刻ありでは通知の意味が違うので戻す
@@ -147,7 +149,7 @@ export function openEventEditor(target) {
   renderReminders();
 
   // ── カレンダー・色 ──
-  const calSel = h('select.input', { onchange: e => { v.calendarId = e.target.value; renderColors(); } },
+  const calSel = h('select.input', { onchange: e => { v.calendarId = e.target.value; renderColors(); renderSyllabus(); } },
     sortedCalendars().filter(c => !calReadOnly(c) || c.id === v.calendarId)
       .map(c => h('option', { value: c.id, selected: c.id === v.calendarId }, c.name + (isGoogleCal(c) ? '（Google）' : ''))));
   const colors = h('div.color-picker');
@@ -170,7 +172,24 @@ export function openEventEditor(target) {
   const routeBtn = h('button.pill-btn', { onclick: () => openRouteSheet({ title: v.title, place: v.location.trim(), start: v.start, allDay: v.allDay }) }, '🚃 経路');
   const syncMap = () => { mapLink.hidden = routeBtn.hidden = !v.location.trim(); mapLink.href = mapUrl(v.location.trim()); };
   syncMap();
-  const notesIn = h('textarea.input.notes-input', { placeholder: 'メモ', rows: 3, value: v.notes, oninput: e => { v.notes = e.target.value; } });
+  // メモ欄の URL はタップで開けるようにする
+  const linkWrap = h('div.chips.note-links');
+  const renderLinks = () => clear(linkWrap, findUrls(v.notes).slice(0, 5).map(u => h('button.chip.link-chip', { onclick: () => openUrl(u) }, '🔗 ' + u.replace(/^https?:\/\/(www\.)?/, '').slice(0, 40))));
+  const notesIn = h('textarea.input.notes-input', { placeholder: 'メモ', rows: 3, value: v.notes, oninput: e => { v.notes = e.target.value; renderLinks(); } });
+  renderLinks();
+
+  // 授業カレンダーの予定には「📘 シラバス」
+  const isClass = () => !!app.store.state.settings.classCalendarId && v.calendarId === app.store.state.settings.classCalendarId;
+  const syllabusRow = h('div.field.row.syllabus-row');
+  const renderSyllabus = () => {
+    syllabusRow.hidden = !isClass();
+    const has = !!savedUrl(v.title);
+    clear(syllabusRow, h('span.field-label', '📘 シラバス'),
+      h('div.btn-row.tight',
+        h('button.pill-btn' + (has ? '.primary' : ''), { onclick: () => openSyllabus(v.title.trim(), renderSyllabus) }, has ? '開く' : '探す'),
+        has && h('button.pill-btn', { 'aria-label': 'シラバスの URL を変える', onclick: () => openSyllabusSheet(v.title.trim(), renderSyllabus) }, '変更')));
+  };
+  renderSyllabus();
 
   syncTimes();
 
@@ -198,6 +217,7 @@ export function openEventEditor(target) {
   const content = h('div.form',
     readOnly && h('p.note.ro-note', '🔒 Googleカレンダーの読み取り専用の予定です（祝日・共有カレンダー、またはアプリで扱えない繰り返し）。変更はGoogleカレンダーで行ってください。'),
     h('div.field', titleIn),
+    syllabusRow,
     h('label.field.row', h('span.field-label', '終日'), h('span.switch', allDayIn, h('span.switch-ui'))),
     h('div.field.row', h('span.field-label', '開始'), h('div.dt', sDate, sTime)),
     h('div.field.row', h('span.field-label', '終了'), h('div.dt', eDate, eTime)),
@@ -207,7 +227,7 @@ export function openEventEditor(target) {
     h('div.field.row', h('span.field-label', 'カレンダー'), calSel),
     h('div.field', h('div.field-label', '色'), colors),
     h('div.field.row.loc-row', locIn, mapLink, routeBtn),
-    h('div.field', notesIn),
+    h('div.field', notesIn, linkWrap),
     !isNew && !readOnly && h('button.btn.danger.wide', { onclick: async () => { if (await removeOccurrence(occ)) sheet.close(); } }, '予定を削除'),
   );
 
@@ -217,7 +237,7 @@ export function openEventEditor(target) {
     content,
     headerRight: !readOnly && h('button.pill-btn.primary', { onclick: save }, isNew ? '追加' : '保存'),
   });
-  if (readOnly) content.querySelectorAll('input, select, textarea, button').forEach(el => { el.disabled = true; });
+  if (readOnly) content.querySelectorAll('input, select, textarea, button:not(.link-chip)').forEach(el => { el.disabled = true; });
   titleIn.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); save(); } });
   if (isNew && !v.title) titleIn.focus({ preventScroll: true });
 }

@@ -90,4 +90,5 @@ export const DEFAULT_SETTINGS = {
   arriveMargin: 5,          // 開始の何分前に着くか
   placeStations: {},        // 予定の場所 → 調べるときの行き先（駅名）
   recentOrigins: [],
+  syllabusUrls: {},         // 科目名 → シラバスの URL
 };
