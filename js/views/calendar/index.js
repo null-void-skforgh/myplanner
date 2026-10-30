@@ -52,7 +52,7 @@ export function mountCalendar(page) {
     body.dataset.view = view;
     const opts = { date, view, weekStart, dayStartHour };
     if (view === 'month') renderMonth(body, opts);
-    else if (view === 'agenda') renderAgenda(body, opts);
+    else if (view === 'agenda') renderAgenda(body, { ...opts, onMonth: d => { title.textContent = fmtYM(d); } });
     else renderTimeGrid(body, opts);
   }
 
