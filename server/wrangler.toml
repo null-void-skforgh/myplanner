@@ -15,4 +15,4 @@ crons = ["* * * * *"]
 [[d1_databases]]
 binding = "DB"
 database_name = "myplanner"
-database_id = "__D1_DATABASE_ID__"
+database_id = "b1649198-9d72-4932-b71b-ec86d58409e2"
