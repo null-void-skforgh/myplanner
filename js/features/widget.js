@@ -101,7 +101,7 @@ const WD=["日","月","火","水","木","金","土"];
 function eventRow(w,e,dim){
   const r=w.addStack();r.layoutHorizontally();r.centerAlignContent();r.spacing=6;
   const bar=r.addText("▍");bar.font=Font.boldSystemFont(13);bar.textColor=new Color(e.c||"#7F77DD");
-  const t=r.addText(e.label);t.font=Font.mediumSystemFont(12);t.textColor=new Color(e.now?"#EF9F27":"#8f8ea6");t.minimumScaleFactor=0.8;
+  const t=r.addText(e.label);t.font=Font.mediumSystemFont(12);t.textColor=new Color(e.now?"#EF9F27":"#8f8ea6");t.lineLimit=1;
   const l=r.addText(e.t);l.font=e.now?Font.boldSystemFont(13):Font.systemFont(13);l.textColor=new Color(dim?"#a9a8bd":"#f0eff9");l.lineLimit=1;
   r.addSpacer();
   if(e.l&&!dim){const p=r.addText(e.l);p.font=Font.systemFont(10);p.textColor=new Color("#6b6a80");p.lineLimit=1;}
